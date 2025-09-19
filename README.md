@@ -228,5 +228,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 - Crear editor de notas clínicas
 - Implementar sistema de facturación
 - Añadir reportes y analytics
-#   p s y c a r e - p r o  
+#   p s y c a r e - p r o 
+ 
  
