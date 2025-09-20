@@ -13,32 +13,40 @@
   - Dashboard básico
   - Soporte por email
 
-### 2. Professional Plan - €45/mes
-- **Límite de pacientes**: 100
+### 2. Professional Plan - €55/mes ⭐ **MÁS POPULAR**
+- **Límite de pacientes**: 150
 - **Límite de sesiones**: Ilimitadas
-- **Almacenamiento**: 500MB (optimizado)
+- **Almacenamiento**: 1GB (optimizado)
 - **Funciones incluidas**:
   - Todas las funciones del Starter
   - Resúmenes con IA de las sesiones
-  - Reportes avanzados
-  - Análisis de tendencias
-  - Exportación de datos
-  - Recordatorios automáticos
-  - Soporte prioritario
+  - Reportes avanzados y analytics
+  - Análisis de tendencias de pacientes
+  - Exportación de datos completa
+  - Recordatorios automáticos (email + SMS)
+  - Integración con Stripe
+  - Facturación automática
+  - Dashboard avanzado con métricas
+  - Soporte prioritario por chat
+  - Backup automático
+  - Plantillas personalizables de notas
 
-### 3. Premium Plan - €75/mes
+### 3. Premium Plan - €150/mes
 - **Límite de pacientes**: Ilimitado
 - **Límite de sesiones**: Ilimitado
-- **Almacenamiento**: 1GB (optimizado)
+- **Almacenamiento**: Ilimitado
 - **Funciones incluidas**:
   - Todas las funciones del Professional
   - IA avanzada para análisis de progreso
-  - Integración con Stripe
-  - Facturación automática
-  - API personalizada
-  - Soporte prioritario 24/7
-  - Backup automático
-  - Cumplimiento HIPAA
+  - API personalizada completa
+  - Integración con sistemas externos
+  - Soporte prioritario 24/7 por teléfono
+  - Cumplimiento HIPAA completo
+  - Auditoría avanzada de accesos
+  - Múltiples ubicaciones/clínicas
+  - Gestión de equipo (hasta 5 usuarios)
+  - Reportes personalizados
+  - Integración con calendarios externos
 
 ---
 
@@ -84,59 +92,65 @@ Features:
 
 ---
 
-### **PLAN 2: PROFESSIONAL PLAN**
+### **PLAN 2: PROFESSIONAL PLAN** ⭐ **MÁS POPULAR**
 
 **Configuración en Clerk:**
 
 ```
 Name: Professional Plan
 Key: professional_plan
-Description: Ideal para psicólogos establecidos con práctica en crecimiento
+Description: ⭐ El plan más popular - Ideal para psicólogos establecidos con práctica en crecimiento
 
-Monthly base fee: €45.00
-Annual discount - Monthly base fee: €36.00 (20% descuento)
+Monthly base fee: €55.00
+Annual discount - Monthly base fee: €49.50 (10% descuento)
 
 Free trial: 14 Days
 
 Publicly available: ✅ SÍ
 
 Features:
-- 100 pacientes máximo
+- 150 pacientes máximo
 - Sesiones ilimitadas
-- 500MB almacenamiento optimizado
+- 1GB almacenamiento optimizado
 - Todas las funciones del Starter
 - Resúmenes con IA de las sesiones
-- Reportes avanzados
-- Análisis de tendencias
-- Exportación de datos
-- Recordatorios automáticos
-- Soporte prioritario
+- Reportes avanzados y analytics
+- Análisis de tendencias de pacientes
+- Exportación de datos completa
+- Recordatorios automáticos (email + SMS)
+- Integración con Stripe
+- Facturación automática
+- Dashboard avanzado con métricas
+- Soporte prioritario por chat
+- Backup automático
+- Plantillas personalizables de notas
 ```
 
 **Metadata (en Advanced Settings):**
 ```json
 {
-  "patient_limit": 100,
+  "patient_limit": 150,
   "session_limit": -1,
-  "storage_limit": 500,
-  "features": ["ai_session_summaries", "advanced_reports", "trend_analysis", "data_export", "auto_reminders", "priority_support"],
-  "tier": "professional"
+  "storage_limit": 1000,
+  "features": ["basic_patients", "basic_appointments", "basic_notes", "basic_dashboard", "ai_summaries", "advanced_reports", "analytics", "data_export", "auto_reminders", "stripe_integration", "auto_billing", "advanced_dashboard", "priority_support", "backup", "custom_templates"],
+  "tier": "professional",
+  "most_popular": true
 }
 ```
 
 ---
 
-### **PLAN 3: PREMIUM PLAN**
+### **PLAN 3: PREMIUM PLAN** 🚀 **EMPRESA**
 
 **Configuración en Clerk:**
 
 ```
 Name: Premium Plan
 Key: premium_plan
-Description: Para prácticas grandes y profesionales que necesitan todas las funciones
+Description: 🚀 Para clínicas grandes, equipos y profesionales que necesitan máxima funcionalidad
 
-Monthly base fee: €75.00
-Annual discount - Monthly base fee: €60.00 (20% descuento)
+Monthly base fee: €150.00
+Annual discount - Monthly base fee: €135.00 (10% descuento)
 
 Free trial: 14 Days
 
@@ -145,15 +159,19 @@ Publicly available: ✅ SÍ
 Features:
 - Pacientes ilimitados
 - Sesiones ilimitadas
-- 1GB almacenamiento optimizado
+- Almacenamiento ilimitado
 - Todas las funciones del Professional
 - IA avanzada para análisis de progreso
-- Integración con Stripe
-- Facturación automática
-- API personalizada
-- Soporte prioritario 24/7
-- Backup automático
-- Cumplimiento HIPAA
+- API personalizada completa
+- Integración con sistemas externos
+- Soporte prioritario 24/7 por teléfono
+- Cumplimiento HIPAA completo
+- Auditoría avanzada de accesos
+- Múltiples ubicaciones/clínicas
+- Gestión de equipo (hasta 5 usuarios)
+- Reportes personalizados
+- Integración con calendarios externos
+- Backup automático premium
 ```
 
 **Metadata (en Advanced Settings):**
@@ -161,9 +179,10 @@ Features:
 {
   "patient_limit": -1,
   "session_limit": -1,
-  "storage_limit": 1024,
-  "features": ["advanced_ai_analysis", "stripe_integration", "auto_billing", "custom_api", "priority_support", "hipaa_compliance", "auto_backup"],
-  "tier": "premium"
+  "storage_limit": -1,
+  "features": ["advanced_ai_analysis", "stripe_integration", "auto_billing", "custom_api", "external_integrations", "priority_support_24_7", "hipaa_compliance", "advanced_audit", "multi_location", "team_management", "custom_reports", "calendar_integration", "premium_backup"],
+  "tier": "premium",
+  "enterprise": true
 }
 ```
 
@@ -246,13 +265,13 @@ export const checkLimits = async () => {
   
   if (has({ plan: 'starter_plan' })) {
     patientLimit = 25;
-    sessionLimit = 100;
+    sessionLimit = -1; // Ilimitadas
   } else if (has({ plan: 'professional_plan' })) {
-    patientLimit = 100;
-    sessionLimit = 500;
+    patientLimit = 150;
+    sessionLimit = -1; // Ilimitadas
   } else if (has({ plan: 'premium_plan' })) {
     patientLimit = -1; // Ilimitado
-    sessionLimit = -1; // Ilimitado
+    sessionLimit = -1; // Ilimitadas
   }
   
   return { patientLimit, sessionLimit };
@@ -275,11 +294,11 @@ export const hasAdvancedAI = async () => {
 
 ## 📊 **RESUMEN DE LÍMITES POR PLAN**
 
-| Plan | Pacientes | Sesiones/Mes | Almacenamiento | IA Resúmenes | IA Avanzada | Funciones |
-|------|-----------|--------------|----------------|--------------|-------------|-----------|
-| **Starter** | 25 | Ilimitadas | 200MB | ❌ | ❌ | Básicas |
-| **Professional** | 100 | Ilimitadas | 500MB | ✅ | ❌ | Avanzadas |
-| **Premium** | Ilimitado | Ilimitado | 1GB | ✅ | ✅ | Todas |
+| Plan | Pacientes | Sesiones/Mes | Almacenamiento | IA Resúmenes | IA Avanzada | Funciones | Precio |
+|------|-----------|--------------|----------------|--------------|-------------|-----------|--------|
+| **Starter** | 25 | Ilimitadas | 200MB | ❌ | ❌ | Básicas | €25/mes |
+| **Professional** ⭐ | 150 | Ilimitadas | 1GB | ✅ | ❌ | Avanzadas | €55/mes |
+| **Premium** 🚀 | Ilimitado | Ilimitadas | Ilimitado | ✅ | ✅ | Completas | €150/mes |
 
 ### **🎯 Diferencias Clave:**
 - **Starter**: Ideal para psicólogos nuevos con pocos pacientes

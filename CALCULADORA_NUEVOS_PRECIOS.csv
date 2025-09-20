@@ -1,0 +1,17 @@
+Escenario,Usuarios,Starter (€25),Professional (€55),Premium (€150),Total Ingresos,Costos Fijos,Costos Variables,Beneficio Bruto,Beneficio Neto,Margen Neto
+Escenario Conservador,50,20,25,5,€2.425,€70,€35,€2.320,€2.285,94.23%
+Escenario Realista,100,15,70,15,€5.125,€70,€70,€4.985,€4.915,95.90%
+Escenario Optimista,200,20,150,30,€10.400,€70,€140,€10.190,€10.050,96.63%
+Escenario Empresarial,500,25,400,75,€25.875,€70,€350,€25.455,€25.105,97.02%
+Escenario Máximo,1000,50,800,150,€51.750,€70,€700,€50.980,€50.210,97.06%
+
+ANÁLISIS DE DISTRIBUCIÓN DE USUARIOS:
+- Starter (€25): 10-20% de usuarios (principiantes)
+- Professional (€55): 70-80% de usuarios (plan más popular) ⭐
+- Premium (€150): 5-15% de usuarios (clínicas grandes) 🚀
+
+BENEFICIOS CLAVE:
+- Professional es el más atractivo (mejor relación calidad-precio)
+- Premium justifica su precio con almacenamiento ilimitado
+- Margen neto superior al 95% en todos los escenarios
+- Escalabilidad excelente sin aumento proporcional de costos

@@ -37,8 +37,8 @@
 
 #### 1.3 Configuración de planes de suscripción (OPTIMIZADOS)
 - **Starter (€25/mes)**: 25 pacientes, 200MB almacenamiento optimizado
-- **Professional (€45/mes)**: 100 pacientes, 500MB, IA resúmenes, reportes avanzados  
-- **Premium (€75/mes)**: Ilimitado, 1GB, IA avanzada, todas las funciones
+- **Professional (€55/mes)**: 150 pacientes, 1GB, IA resúmenes, reportes avanzados ⭐ **MÁS POPULAR**
+- **Premium (€150/mes)**: Ilimitado, almacenamiento ilimitado, IA avanzada, todas las funciones 🚀 **EMPRESA**
 
 ---
 
@@ -198,8 +198,8 @@ billing (facturación)
 ### 💳 2. SISTEMA DE SUSCRIPCIONES (OPTIMIZADO)
 - 3 Planes de suscripción:
   - Starter (€25/mes): 25 pacientes, 200MB almacenamiento optimizado
-  - Professional (€45/mes): 100 pacientes, 500MB, IA resúmenes, reportes avanzados
-  - Premium (€75/mes): Ilimitado, 1GB, IA avanzada, todas las funciones
+  - Professional (€55/mes): 150 pacientes, 1GB, IA resúmenes, reportes avanzados ⭐ **MÁS POPULAR**
+  - Premium (€150/mes): Ilimitado, almacenamiento ilimitado, IA avanzada, todas las funciones 🚀 **EMPRESA**
 - Integración completa con Stripe
 - Customer Portal para gestión de suscripciones
 - Upgrades/downgrades automáticos
