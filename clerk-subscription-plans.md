@@ -2,153 +2,297 @@
 
 ## Planes para PsyCare Pro
 
-### 1. Starter Plan - $19/mes
+### 1. Starter Plan - €25/mes
 - **Límite de pacientes**: 25
-- **Almacenamiento**: 2GB
+- **Límite de sesiones**: Ilimitadas
+- **Almacenamiento**: 200MB (optimizado)
 - **Funciones incluidas**:
   - Gestión básica de pacientes
   - Sistema de citas
   - Notas clínicas básicas
   - Dashboard básico
+  - Soporte por email
 
-### 2. Professional Plan - $39/mes
+### 2. Professional Plan - €45/mes
 - **Límite de pacientes**: 100
-- **Almacenamiento**: 10GB
+- **Límite de sesiones**: Ilimitadas
+- **Almacenamiento**: 500MB (optimizado)
 - **Funciones incluidas**:
   - Todas las funciones del Starter
+  - Resúmenes con IA de las sesiones
   - Reportes avanzados
   - Análisis de tendencias
   - Exportación de datos
   - Recordatorios automáticos
+  - Soporte prioritario
 
-### 3. Premium Plan - $69/mes
+### 3. Premium Plan - €75/mes
 - **Límite de pacientes**: Ilimitado
-- **Almacenamiento**: 50GB
+- **Límite de sesiones**: Ilimitado
+- **Almacenamiento**: 1GB (optimizado)
 - **Funciones incluidas**:
   - Todas las funciones del Professional
+  - IA avanzada para análisis de progreso
   - Integración con Stripe
   - Facturación automática
   - API personalizada
-  - Soporte prioritario
+  - Soporte prioritario 24/7
+  - Backup automático
+  - Cumplimiento HIPAA
 
-## Configuración en Clerk Dashboard
+---
 
-1. Ve a [Clerk Dashboard](https://dashboard.clerk.com/)
-2. Selecciona tu aplicación
-3. Ve a "Subscriptions" en el menú lateral
-4. Crea los siguientes planes:
+## 🔐 **CONFIGURACIÓN DETALLADA EN CLERK DASHBOARD**
 
-### Starter Plan
+### **PLAN 1: STARTER PLAN**
+
+**Configuración en Clerk:**
+
+```
+Name: Starter Plan
+Key: starter_plan
+Description: Perfecto para psicólogos que están comenzando su práctica profesional
+
+Monthly base fee: €25.00
+Annual discount - Monthly base fee: €20.00 (20% descuento)
+
+Free trial: 14 Days
+
+Publicly available: ✅ SÍ
+
+Features:
+- 25 pacientes máximo
+- Sesiones ilimitadas
+- 200MB almacenamiento optimizado
+- Gestión básica de pacientes
+- Sistema de citas
+- Notas clínicas básicas
+- Dashboard básico
+- Soporte por email
+```
+
+**Metadata (en Advanced Settings):**
 ```json
 {
-  "name": "Starter",
-  "description": "Perfecto para psicólogos que están comenzando",
-  "price": {
-    "amount": 1900,
-    "currency": "usd",
-    "interval": "month"
-  },
-  "features": [
-    "25 pacientes",
-    "2GB almacenamiento",
-    "Gestión básica de pacientes",
-    "Sistema de citas",
-    "Notas clínicas básicas",
-    "Dashboard básico"
-  ],
-  "metadata": {
-    "patient_limit": 25,
-    "storage_limit": 2147483648,
-    "features": ["basic_patients", "basic_appointments", "basic_notes", "basic_dashboard"]
-  }
+  "patient_limit": 25,
+  "session_limit": -1,
+  "storage_limit": 200,
+  "features": ["basic_patients", "basic_appointments", "basic_notes", "basic_dashboard"],
+  "tier": "starter"
 }
 ```
 
-### Professional Plan
+---
+
+### **PLAN 2: PROFESSIONAL PLAN**
+
+**Configuración en Clerk:**
+
+```
+Name: Professional Plan
+Key: professional_plan
+Description: Ideal para psicólogos establecidos con práctica en crecimiento
+
+Monthly base fee: €45.00
+Annual discount - Monthly base fee: €36.00 (20% descuento)
+
+Free trial: 14 Days
+
+Publicly available: ✅ SÍ
+
+Features:
+- 100 pacientes máximo
+- Sesiones ilimitadas
+- 500MB almacenamiento optimizado
+- Todas las funciones del Starter
+- Resúmenes con IA de las sesiones
+- Reportes avanzados
+- Análisis de tendencias
+- Exportación de datos
+- Recordatorios automáticos
+- Soporte prioritario
+```
+
+**Metadata (en Advanced Settings):**
 ```json
 {
-  "name": "Professional",
-  "description": "Ideal para psicólogos establecidos",
-  "price": {
-    "amount": 3900,
-    "currency": "usd",
-    "interval": "month"
-  },
-  "features": [
-    "100 pacientes",
-    "10GB almacenamiento",
-    "Reportes avanzados",
-    "Análisis de tendencias",
-    "Exportación de datos",
-    "Recordatorios automáticos"
-  ],
-  "metadata": {
-    "patient_limit": 100,
-    "storage_limit": 10737418240,
-    "features": ["advanced_reports", "trend_analysis", "data_export", "auto_reminders"]
-  }
+  "patient_limit": 100,
+  "session_limit": -1,
+  "storage_limit": 500,
+  "features": ["ai_session_summaries", "advanced_reports", "trend_analysis", "data_export", "auto_reminders", "priority_support"],
+  "tier": "professional"
 }
 ```
 
-### Premium Plan
+---
+
+### **PLAN 3: PREMIUM PLAN**
+
+**Configuración en Clerk:**
+
+```
+Name: Premium Plan
+Key: premium_plan
+Description: Para prácticas grandes y profesionales que necesitan todas las funciones
+
+Monthly base fee: €75.00
+Annual discount - Monthly base fee: €60.00 (20% descuento)
+
+Free trial: 14 Days
+
+Publicly available: ✅ SÍ
+
+Features:
+- Pacientes ilimitados
+- Sesiones ilimitadas
+- 1GB almacenamiento optimizado
+- Todas las funciones del Professional
+- IA avanzada para análisis de progreso
+- Integración con Stripe
+- Facturación automática
+- API personalizada
+- Soporte prioritario 24/7
+- Backup automático
+- Cumplimiento HIPAA
+```
+
+**Metadata (en Advanced Settings):**
 ```json
 {
-  "name": "Premium",
-  "description": "Para prácticas grandes y profesionales",
-  "price": {
-    "amount": 6900,
-    "currency": "usd",
-    "interval": "month"
-  },
-  "features": [
-    "Pacientes ilimitados",
-    "50GB almacenamiento",
-    "Integración con Stripe",
-    "Facturación automática",
-    "API personalizada",
-    "Soporte prioritario"
-  ],
-  "metadata": {
-    "patient_limit": -1,
-    "storage_limit": 53687091200,
-    "features": ["stripe_integration", "auto_billing", "custom_api", "priority_support"]
-  }
+  "patient_limit": -1,
+  "session_limit": -1,
+  "storage_limit": 1024,
+  "features": ["advanced_ai_analysis", "stripe_integration", "auto_billing", "custom_api", "priority_support", "hipaa_compliance", "auto_backup"],
+  "tier": "premium"
 }
 ```
 
-## Verificación de Planes en el Código
+---
 
-En las acciones del servidor, puedes verificar el plan del usuario usando:
+## 📋 **PASOS PARA CONFIGURAR EN CLERK:**
 
+### **1. Para cada plan:**
+1. Haz clic en **"New Plan"**
+2. Completa la información básica
+3. En **"Features"**, añade cada característica como un bullet point
+4. En **"Advanced Settings"** > **"Metadata"**, pega el JSON correspondiente
+5. Guarda el plan
+
+### **2. Configurar precios:**
+- **Starter**: €25/mes, €20/mes anual
+- **Professional**: €45/mes, €36/mes anual  
+- **Premium**: €75/mes, €60/mes anual
+
+### **3. Configurar trial:**
+- Todos los planes: **14 días gratis**
+
+---
+
+## 🧪 **VERIFICAR CONFIGURACIÓN:**
+
+Una vez configurados los planes, puedes verificar que funcionen:
+
+1. **En tu app**: Los planes aparecerán en `/subscription`
+2. **En el código**: Puedes verificar con:
+```typescript
+const { has } = await auth();
+
+if (has({ plan: 'starter_plan' })) {
+  // Lógica para Starter
+} else if (has({ plan: 'professional_plan' })) {
+  // Lógica para Professional  
+} else if (has({ plan: 'premium_plan' })) {
+  // Lógica para Premium
+}
+```
+
+---
+
+## 🔍 **VERIFICACIÓN DE LÍMITES EN EL CÓDIGO**
+
+### **Verificar Plan del Usuario:**
 ```typescript
 import { auth } from "@clerk/nextjs/server";
 
 const { has } = await auth();
 
-// Verificar si tiene plan Premium
-if (has({ plan: 'premium' })) {
-  // Funciones ilimitadas
+// Verificar plan específico
+if (has({ plan: 'starter_plan' })) {
+  // Lógica para Starter Plan
+} else if (has({ plan: 'professional_plan' })) {
+  // Lógica para Professional Plan
+} else if (has({ plan: 'premium_plan' })) {
+  // Lógica para Premium Plan
 }
 
-// Verificar límites específicos
+// Verificar funciones específicas
 if (has({ feature: "advanced_reports" })) {
   // Mostrar reportes avanzados
 }
+
+if (has({ feature: "stripe_integration" })) {
+  // Habilitar integración con Stripe
+}
 ```
 
-## Límites por Plan
+### **Verificar Límites de Pacientes y Sesiones:**
+```typescript
+// En las acciones del servidor
+export const checkLimits = async () => {
+  const { has } = await auth();
+  
+  let patientLimit = 0;
+  let sessionLimit = 0;
+  
+  if (has({ plan: 'starter_plan' })) {
+    patientLimit = 25;
+    sessionLimit = 100;
+  } else if (has({ plan: 'professional_plan' })) {
+    patientLimit = 100;
+    sessionLimit = 500;
+  } else if (has({ plan: 'premium_plan' })) {
+    patientLimit = -1; // Ilimitado
+    sessionLimit = -1; // Ilimitado
+  }
+  
+  return { patientLimit, sessionLimit };
+};
 
-### Starter Plan
-- Máximo 25 pacientes
-- Máximo 2GB de almacenamiento
-- Solo funciones básicas
+// Verificar si tiene IA para resúmenes
+export const hasAISummaries = async () => {
+  const { has } = await auth();
+  return has({ feature: "ai_session_summaries" });
+};
 
-### Professional Plan
-- Máximo 100 pacientes
-- Máximo 10GB de almacenamiento
-- Funciones avanzadas incluidas
+// Verificar si tiene IA avanzada
+export const hasAdvancedAI = async () => {
+  const { has } = await auth();
+  return has({ feature: "advanced_ai_analysis" });
+};
+```
 
-### Premium Plan
-- Pacientes ilimitados
-- Máximo 50GB de almacenamiento
-- Todas las funciones incluidas
+---
+
+## 📊 **RESUMEN DE LÍMITES POR PLAN**
+
+| Plan | Pacientes | Sesiones/Mes | Almacenamiento | IA Resúmenes | IA Avanzada | Funciones |
+|------|-----------|--------------|----------------|--------------|-------------|-----------|
+| **Starter** | 25 | Ilimitadas | 200MB | ❌ | ❌ | Básicas |
+| **Professional** | 100 | Ilimitadas | 500MB | ✅ | ❌ | Avanzadas |
+| **Premium** | Ilimitado | Ilimitado | 1GB | ✅ | ✅ | Todas |
+
+### **🎯 Diferencias Clave:**
+- **Starter**: Ideal para psicólogos nuevos con pocos pacientes
+- **Professional**: Para psicólogos establecidos con IA para resúmenes automáticos
+- **Premium**: Para clínicas grandes con IA avanzada para análisis de progreso
+
+---
+
+## 🚀 **PRÓXIMOS PASOS**
+
+Una vez configurados los planes en Clerk:
+
+1. ✅ **Configurar Supabase** - Ejecutar esquema SQL
+2. ✅ **Probar autenticación** - Registro/login
+3. ✅ **Verificar planes** - Página de suscripción
+4. ✅ **Implementar límites** - En las acciones del servidor

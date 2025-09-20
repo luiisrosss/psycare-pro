@@ -35,10 +35,10 @@
 - Campos adicionales: número de licencia, especialización
 - Verificación de identidad profesional
 
-#### 1.3 Configuración de planes de suscripción
-- **Starter ($19/mes)**: 25 pacientes, 2GB almacenamiento
-- **Professional ($39/mes)**: 100 pacientes, 10GB, reportes avanzados  
-- **Premium ($69/mes)**: Ilimitado, 50GB, todas las funciones
+#### 1.3 Configuración de planes de suscripción (OPTIMIZADOS)
+- **Starter (€25/mes)**: 25 pacientes, 200MB almacenamiento optimizado
+- **Professional (€45/mes)**: 100 pacientes, 500MB, IA resúmenes, reportes avanzados  
+- **Premium (€75/mes)**: Ilimitado, 1GB, IA avanzada, todas las funciones
 
 ---
 
@@ -144,16 +144,31 @@ billing (facturación)
 
 ---
 
-### **FASE 8: UI/UX PROFESIONAL**
+### **FASE 8: OPTIMIZACIÓN DE ALMACENAMIENTO**
 *Duración estimada: 2-3 días*
 
-#### 8.1 Diseño clínico
+#### 8.1 Sistema de compresión automática
+- Compresión de PDFs (70% reducción)
+- Compresión de documentos de texto (60% reducción)
+- Optimización de imágenes (80% reducción)
+- Monitoreo de ratios de compresión
+
+#### 8.2 Monitoreo de uso
+- Dashboard de uso de almacenamiento
+- Alertas de límites por plan
+- Limpieza automática de datos antiguos
+- Reportes de optimización
+
+### **FASE 9: UI/UX PROFESIONAL**
+*Duración estimada: 2-3 días*
+
+#### 9.1 Diseño clínico
 - Paleta: Blanco dominante, negro para contraste
 - Tipografía: Inter
 - Estilo profesional y confiable
 - Responsive mobile-first
 
-#### 8.2 Accesibilidad
+#### 9.2 Accesibilidad
 - WCAG 2.1 compliant
 - Componentes accesibles
 
@@ -180,15 +195,16 @@ billing (facturación)
 - Protección de rutas automática
 - Gestión de sesiones segura
 
-### 💳 2. SISTEMA DE SUSCRIPCIONES
+### 💳 2. SISTEMA DE SUSCRIPCIONES (OPTIMIZADO)
 - 3 Planes de suscripción:
-  - Starter ($19/mes): 25 pacientes, 2GB almacenamiento
-  - Professional ($39/mes): 100 pacientes, 10GB, reportes avanzados
-  - Premium ($69/mes): Ilimitado, 50GB, todas las funciones
+  - Starter (€25/mes): 25 pacientes, 200MB almacenamiento optimizado
+  - Professional (€45/mes): 100 pacientes, 500MB, IA resúmenes, reportes avanzados
+  - Premium (€75/mes): Ilimitado, 1GB, IA avanzada, todas las funciones
 - Integración completa con Stripe
 - Customer Portal para gestión de suscripciones
 - Upgrades/downgrades automáticos
-- Límites por plan (pacientes, almacenamiento)
+- Límites por plan (pacientes, almacenamiento optimizado)
+- Monitoreo automático de uso de almacenamiento
 
 ### 🏠 3. DASHBOARD PROFESIONAL
 - Panel principal con métricas clave
@@ -292,12 +308,15 @@ billing (facturación)
   - Tiempo promedio por sesión
   - Tasa de cancelaciones
 
-### 📄 10. GESTIÓN DE DOCUMENTOS
-- Subida de documentos del paciente
-- Categorización por tipo (historial, pruebas, etc.)
+### 📄 10. GESTIÓN DE DOCUMENTOS (OPTIMIZADA)
+- Subida de documentos del paciente con compresión automática
+- Categorización por tipo (nota clínica, factura, receta, autorización, etc.)
+- Compresión automática: PDFs (70% reducción), documentos (60% reducción)
+- Monitoreo de uso de almacenamiento en tiempo real
+- Límites optimizados por plan (200MB-1GB)
+- Limpieza automática de datos antiguos
 - Marcado de confidencialidad
 - Búsqueda en documentos
-- Límites de almacenamiento por plan
 
 ### 🎨 11. DISEÑO PROFESIONAL
 - Paleta de colores: Blanco dominante, negro para contraste
@@ -351,7 +370,12 @@ billing (facturación)
 - [ ] RLS y encriptación
 - [ ] Auditoría
 
-### Fase 8: UI/UX ⏳
+### Fase 8: Optimización ⏳
+- [ ] Sistema de compresión automática
+- [ ] Monitoreo de uso de almacenamiento
+- [ ] Limpieza automática de datos
+
+### Fase 9: UI/UX ⏳
 - [ ] Diseño clínico
 - [ ] Accesibilidad
 

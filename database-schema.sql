@@ -83,18 +83,21 @@ CREATE TABLE clinical_notes (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tabla de documentos
+-- Tabla de documentos (optimizada para almacenamiento)
 CREATE TABLE documents (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     psychologist_id UUID NOT NULL REFERENCES psychologists(id) ON DELETE CASCADE,
     patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     filename TEXT NOT NULL,
     file_path TEXT NOT NULL,
-    file_size BIGINT NOT NULL,
+    file_size BIGINT NOT NULL, -- Tamaño en bytes
+    compressed_size BIGINT, -- Tamaño después de compresión
     file_type TEXT NOT NULL,
-    category TEXT NOT NULL,
+    category TEXT NOT NULL CHECK (category IN ('clinical_note', 'invoice', 'prescription', 'authorization', 'consent', 'discharge', 'insurance_report', 'backup')),
     confidential BOOLEAN DEFAULT TRUE,
-    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    compression_ratio DECIMAL(5,2), -- Ratio de compresión (ej: 0.70 = 70% del tamaño original)
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    compressed_at TIMESTAMP WITH TIME ZONE
 );
 
 -- Tabla de facturas
@@ -112,6 +115,19 @@ CREATE TABLE invoices (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Tabla de monitoreo de almacenamiento por psicólogo
+CREATE TABLE storage_usage (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    psychologist_id UUID NOT NULL REFERENCES psychologists(id) ON DELETE CASCADE,
+    total_documents BIGINT DEFAULT 0,
+    total_size_bytes BIGINT DEFAULT 0, -- Tamaño total sin comprimir
+    compressed_size_bytes BIGINT DEFAULT 0, -- Tamaño total comprimido
+    compression_savings_bytes BIGINT DEFAULT 0, -- Ahorro por compresión
+    documents_count INTEGER DEFAULT 0,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(psychologist_id)
+);
+
 -- Índices para mejorar el rendimiento
 CREATE INDEX idx_patients_psychologist_id ON patients(psychologist_id);
 CREATE INDEX idx_patients_status ON patients(status);
@@ -127,6 +143,9 @@ CREATE INDEX idx_documents_patient_id ON documents(patient_id);
 CREATE INDEX idx_invoices_psychologist_id ON invoices(psychologist_id);
 CREATE INDEX idx_invoices_patient_id ON invoices(patient_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_storage_usage_psychologist_id ON storage_usage(psychologist_id);
+CREATE INDEX idx_documents_category ON documents(category);
+CREATE INDEX idx_documents_compressed_size ON documents(compressed_size);
 
 -- Funciones para actualizar updated_at automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -151,6 +170,7 @@ ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clinical_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE storage_usage ENABLE ROW LEVEL SECURITY;
 
 -- Políticas RLS para psychologists
 CREATE POLICY "Psychologists can view own profile" ON psychologists
@@ -300,6 +320,28 @@ CREATE POLICY "Psychologists can delete own invoices" ON invoices
         )
     );
 
+-- Políticas RLS para storage_usage
+CREATE POLICY "Psychologists can view own storage usage" ON storage_usage
+    FOR SELECT USING (
+        psychologist_id IN (
+            SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub'
+        )
+    );
+
+CREATE POLICY "Psychologists can insert own storage usage" ON storage_usage
+    FOR INSERT WITH CHECK (
+        psychologist_id IN (
+            SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub'
+        )
+    );
+
+CREATE POLICY "Psychologists can update own storage usage" ON storage_usage
+    FOR UPDATE USING (
+        psychologist_id IN (
+            SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub'
+        )
+    );
+
 -- Función para generar números de factura automáticamente
 CREATE OR REPLACE FUNCTION generate_invoice_number()
 RETURNS TRIGGER AS $$
@@ -332,3 +374,48 @@ CREATE TRIGGER generate_invoice_number_trigger
     FOR EACH ROW
     WHEN (NEW.invoice_number IS NULL OR NEW.invoice_number = '')
     EXECUTE FUNCTION generate_invoice_number();
+
+-- Función para actualizar uso de almacenamiento automáticamente
+CREATE OR REPLACE FUNCTION update_storage_usage()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Actualizar o insertar registro de uso de almacenamiento
+    INSERT INTO storage_usage (psychologist_id, total_documents, total_size_bytes, compressed_size_bytes, compression_savings_bytes, documents_count, last_updated)
+    SELECT 
+        NEW.psychologist_id,
+        COUNT(*),
+        SUM(file_size),
+        SUM(COALESCE(compressed_size, file_size)),
+        SUM(file_size - COALESCE(compressed_size, file_size)),
+        COUNT(*),
+        NOW()
+    FROM documents 
+    WHERE psychologist_id = NEW.psychologist_id
+    ON CONFLICT (psychologist_id) 
+    DO UPDATE SET
+        total_documents = EXCLUDED.total_documents,
+        total_size_bytes = EXCLUDED.total_size_bytes,
+        compressed_size_bytes = EXCLUDED.compressed_size_bytes,
+        compression_savings_bytes = EXCLUDED.compression_savings_bytes,
+        documents_count = EXCLUDED.documents_count,
+        last_updated = NOW();
+    
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Triggers para actualizar uso de almacenamiento
+CREATE TRIGGER update_storage_usage_on_insert
+    AFTER INSERT ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION update_storage_usage();
+
+CREATE TRIGGER update_storage_usage_on_update
+    AFTER UPDATE ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION update_storage_usage();
+
+CREATE TRIGGER update_storage_usage_on_delete
+    AFTER DELETE ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION update_storage_usage();
