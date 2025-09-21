@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { HeroUIProvider } from "@heroui/react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -23,8 +24,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
         <ClerkProvider appearance={{ variables: { colorPrimary: '#2563eb' }} }>
-          <Navbar />
-          {children}
+          <HeroUIProvider>
+            <Navbar />
+            {children}
+          </HeroUIProvider>
         </ClerkProvider>
       </body>
     </html>
