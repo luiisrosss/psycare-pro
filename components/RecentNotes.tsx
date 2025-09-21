@@ -1,183 +1,164 @@
-'use client'
-
-import { FileText, User, Calendar, Clock, Eye } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { FileText, User, Calendar, Clock, Eye, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import { obtenerMetricasDashboard } from '@/lib/actions/dashboard.actions'
 
-interface ClinicalNote {
+interface NotaClinica {
   id: string
   paciente: string
   fecha: string
   tipo: 'individual' | 'pareja' | 'familiar' | 'grupal'
+  duracion: number
   contenido: string
   resumen?: string
   estado: 'borrador' | 'completada' | 'pendiente'
-  fechaCreacion: string
 }
 
-export default function RecentNotes() {
-  // Datos de ejemplo - en producción vendrían de Supabase
-  const notes: ClinicalNote[] = [
-    {
-      id: '1',
-      paciente: 'María García',
-      fecha: '2024-01-15',
-      tipo: 'individual',
-      contenido: 'Sesión enfocada en técnicas de relajación y manejo de ansiedad. El paciente mostró buena receptividad a los ejercicios de respiración.',
-      resumen: 'Técnicas de relajación y manejo de ansiedad. Buena receptividad.',
-      estado: 'completada',
-      fechaCreacion: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: '2',
-      paciente: 'Juan Pérez',
-      fecha: '2024-01-15',
-      tipo: 'pareja',
-      contenido: 'Terapia de pareja enfocada en comunicación efectiva. Se trabajó en técnicas de escucha activa y expresión de emociones.',
-      resumen: 'Terapia de pareja - comunicación efectiva y escucha activa.',
-      estado: 'completada',
-      fechaCreacion: '2024-01-15T11:30:00Z'
-    },
-    {
-      id: '3',
-      paciente: 'Ana López',
-      fecha: '2024-01-16',
-      tipo: 'familiar',
-      contenido: 'Sesión familiar para abordar conflictos entre padres e hijos adolescentes. Se establecieron nuevas dinámicas de comunicación.',
-      resumen: 'Conflicto familiar - nuevas dinámicas de comunicación.',
-      estado: 'pendiente',
-      fechaCreacion: '2024-01-16T16:00:00Z'
-    },
-    {
-      id: '4',
-      paciente: 'Carlos Ruiz',
-      fecha: '2024-01-17',
-      tipo: 'individual',
-      contenido: 'Evaluación inicial del paciente. Se identificaron áreas de trabajo principales: autoestima y relaciones interpersonales.',
-      resumen: 'Evaluación inicial - autoestima y relaciones interpersonales.',
-      estado: 'completada',
-      fechaCreacion: '2024-01-17T10:00:00Z'
-    }
-  ]
+// Datos de ejemplo
+const notasRecientes: NotaClinica[] = [
+  {
+    id: '1',
+    paciente: 'María García',
+    fecha: '2024-01-15',
+    tipo: 'individual',
+    duracion: 50,
+    contenido: 'Sesión enfocada en técnicas de relajación y manejo de ansiedad. El paciente mostró buena receptividad a los ejercicios de respiración.',
+    resumen: 'Técnicas de relajación y manejo de ansiedad. Buena receptividad.',
+    estado: 'completada'
+  },
+  {
+    id: '2',
+    paciente: 'Juan Pérez',
+    fecha: '2024-01-15',
+    tipo: 'pareja',
+    duracion: 60,
+    contenido: 'Terapia de pareja enfocada en comunicación efectiva. Se trabajó en técnicas de escucha activa y expresión de emociones.',
+    resumen: 'Terapia de pareja - comunicación efectiva y escucha activa.',
+    estado: 'completada'
+  },
+  {
+    id: '3',
+    paciente: 'Ana López',
+    fecha: '2024-01-16',
+    tipo: 'familiar',
+    duracion: 45,
+    contenido: 'Sesión familiar para abordar conflictos entre padres e hijos adolescentes. Se establecieron nuevas dinámicas de comunicación.',
+    resumen: 'Conflicto familiar - nuevas dinámicas de comunicación.',
+    estado: 'pendiente'
+  }
+]
 
+export default async function RecentNotes() {
+  // Obtener datos reales de Supabase con manejo de errores
+  let notasRecientes = []
+  try {
+    const metrics = await obtenerMetricasDashboard()
+    notasRecientes = metrics.recentNotes
+  } catch (error) {
+    console.error('Error al obtener notas recientes:', error)
+    // Usar datos de ejemplo en caso de error
+    notasRecientes = notasEjemplo
+  }
   const obtenerColorTipo = (tipo: string) => {
     switch (tipo) {
-      case 'individual':
+      case 'session':
         return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'pareja':
+      case 'assessment':
         return 'bg-green-100 text-green-800 border-green-200'
-      case 'familiar':
+      case 'treatment_plan':
         return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'grupal':
+      case 'progress':
         return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'other':
+        return 'bg-gray-100 text-gray-800 border-gray-200'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
-  const obtenerColorEstado = (estado: string) => {
-    switch (estado) {
-      case 'completada':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'pendiente':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'borrador':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
+  const obtenerTextoEstado = (confidencial: boolean) => {
+    return confidencial ? 'Confidencial' : 'Público'
+  }
+
+  const obtenerTextoEstadoColor = (confidencial: boolean) => {
+    return confidencial ? 'border-red-500 text-red-700' : 'border-green-500 text-green-700'
   }
 
   const formatearFecha = (fecha: string) => {
-    const fechaObj = new Date(fecha)
-    const hoy = new Date()
-    const ayer = new Date(hoy)
-    ayer.setDate(hoy.getDate() - 1)
-
-    if (fechaObj.toDateString() === hoy.toDateString()) {
-      return 'Hoy'
-    } else if (fechaObj.toDateString() === ayer.toDateString()) {
-      return 'Ayer'
-    } else {
-      return fechaObj.toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'short'
-      })
-    }
+    return new Date(fecha).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   }
 
-  const truncarTexto = (texto: string, maxLength: number) => {
-    if (texto.length <= maxLength) return texto
-    return texto.substring(0, maxLength) + '...'
+  const handleVerNota = (id: string) => {
+    console.log('Ver nota:', id)
+    // Aquí se implementaría la lógica para ver la nota completa
   }
 
-  if (notes.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-500">No hay notas clínicas</p>
-        <p className="text-sm text-gray-400 mt-1">Crea tu primera nota para comenzar</p>
-        <Link href="/notas">
-          <Button variant="outline" size="sm" className="mt-3">
-            <FileText className="h-4 w-4 mr-2" />
-            Ver Notas
-          </Button>
-        </Link>
-      </div>
-    )
+  const handleEditarNota = (id: string) => {
+    console.log('Editar nota:', id)
+    // Aquí se implementaría la lógica para editar la nota
   }
 
   return (
     <div className="space-y-3">
-      {notes.slice(0, 3).map((note) => (
-        <div key={note.id} className="p-3 rounded-lg border border-gray-200 bg-white">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-medium text-sm">{note.paciente}</h4>
-                <Badge className={`text-xs border ${obtenerColorTipo(note.tipo)}`}>
-                  {note.tipo.charAt(0).toUpperCase() + note.tipo.slice(1)}
-                </Badge>
-                <Badge className={`text-xs border ${obtenerColorEstado(note.estado)}`}>
-                  {note.estado.charAt(0).toUpperCase() + note.estado.slice(1)}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
-                <Calendar className="h-3 w-3" />
-                <span>{formatearFecha(note.fecha)}</span>
-                <Clock className="h-3 w-3 ml-2" />
-                <span>{new Date(note.fechaCreacion).toLocaleTimeString('es-ES', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}</span>
-              </div>
+      {notasRecientes.map((nota) => (
+        <Card key={nota.id} className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    {nota.patient_name}
+                  </h4>
+                  <Badge className={cn('text-xs border', obtenerColorTipo(nota.note_type))}>
+                    {nota.note_type.charAt(0).toUpperCase() + nota.note_type.slice(1)}
+                  </Badge>
+                </div>
 
-              <p className="text-xs text-gray-700 mb-2">
-                {note.resumen ? truncarTexto(note.resumen, 80) : truncarTexto(note.contenido, 80)}
-              </p>
+                <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {formatearFecha(nota.created_at)}
+                  </div>
+                </div>
+
+                <h5 className="text-xs font-medium text-gray-900 mb-1">{nota.title}</h5>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex justify-end">
-            <Link href={`/notas?view=${note.id}`}>
-              <Button variant="ghost" size="sm" className="text-blue-600">
+
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs"
+                onClick={() => handleVerNota(nota.id)}
+              >
                 <Eye className="h-3 w-3 mr-1" />
                 Ver
               </Button>
-            </Link>
-          </div>
-        </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs"
+                onClick={() => handleEditarNota(nota.id)}
+              >
+                <Edit className="h-3 w-3 mr-1" />
+                Editar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ))}
 
-      {notes.length > 3 && (
-        <div className="text-center pt-2">
-          <Link href="/notas">
-            <Button variant="ghost" size="sm" className="text-blue-600">
-              Ver todas las notas ({notes.length})
-            </Button>
-          </Link>
+      {notasRecientes.length === 0 && (
+        <div className="text-center py-6">
+          <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">No hay notas recientes</p>
         </div>
       )}
     </div>

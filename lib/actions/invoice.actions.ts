@@ -1,375 +1,457 @@
 'use server'
 
-import { createClient } from '@/lib/supabase'
+import { createSupabaseClient } from '@/lib/supabase'
+import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 
-export interface Invoice {
+export interface Factura {
   id: string
   psychologist_id: string
   patient_id: string
   invoice_number: string
-  date: string
-  due_date: string
-  concept: string
-  quantity: number
-  unit_price: number
+  invoice_date: string
+  due_date?: string
+  amount: number
+  tax_rate: number
   total_amount: number
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
-  payment_method?: string
   notes?: string
   created_at: string
   updated_at: string
-  patient?: {
-    id: string
+  patients?: {
     first_name: string
     last_name: string
     email?: string
   }
 }
 
-export interface CreateInvoiceData {
+export interface CrearFacturaData {
   patient_id: string
-  date: string
-  due_date: string
-  concept: string
-  quantity: number
-  unit_price: number
-  payment_method?: string
-  notes?: string
-}
-
-export interface UpdateInvoiceData {
-  patient_id?: string
-  date?: string
+  invoice_date: string
   due_date?: string
-  concept?: string
-  quantity?: number
-  unit_price?: number
-  status?: string
-  payment_method?: string
+  amount: number
+  tax_rate?: number
   notes?: string
 }
 
-export async function createInvoice(data: CreateInvoiceData): Promise<{ success: boolean; data?: Invoice; error?: string }> {
+export interface ActualizarFacturaData {
+  invoice_date?: string
+  due_date?: string
+  amount?: number
+  tax_rate?: number
+  total_amount?: number
+  status?: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+  notes?: string
+}
+
+// Obtener todas las facturas del psicólogo
+export async function obtenerFacturas(): Promise<Factura[]> {
   try {
-    const supabase = createClient()
-    
-    // Obtener el usuario autenticado
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    // Obtener el psicólogo asociado al usuario
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
-    // Generar número de factura
-    const { data: lastInvoice } = await supabase
+    const { data: facturas, error } = await supabase
       .from('invoices')
-      .select('invoice_number')
+      .select(`
+        *,
+        patients!inner(first_name, last_name, email)
+      `)
       .eq('psychologist_id', psychologist.id)
       .order('created_at', { ascending: false })
-      .limit(1)
+
+    if (error) {
+      throw new Error(`Error al obtener facturas: ${error.message}`)
+    }
+
+    return facturas || []
+  } catch (error) {
+    console.error('Error en obtenerFacturas:', error)
+    throw error
+  }
+}
+
+// Obtener facturas por paciente
+export async function obtenerFacturasPorPaciente(patientId: string): Promise<Factura[]> {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
       .single()
 
-    const invoiceNumber = lastInvoice 
-      ? `FAC-${new Date().getFullYear()}-${String(parseInt(lastInvoice.invoice_number.split('-')[2]) + 1).padStart(3, '0')}`
-      : `FAC-${new Date().getFullYear()}-001`
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
 
-    const totalAmount = data.quantity * data.unit_price
+    const { data: facturas, error } = await supabase
+      .from('invoices')
+      .select(`
+        *,
+        patients!inner(first_name, last_name, email)
+      `)
+      .eq('psychologist_id', psychologist.id)
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false })
 
-    const { data: invoice, error } = await supabase
+    if (error) {
+      throw new Error(`Error al obtener facturas del paciente: ${error.message}`)
+    }
+
+    return facturas || []
+  } catch (error) {
+    console.error('Error en obtenerFacturasPorPaciente:', error)
+    throw error
+  }
+}
+
+// Crear nueva factura
+export async function crearFactura(datos: CrearFacturaData): Promise<Factura> {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
+
+    const taxRate = datos.tax_rate || 0
+    const totalAmount = datos.amount + (datos.amount * taxRate / 100)
+
+    const { data: nuevaFactura, error } = await supabase
       .from('invoices')
       .insert({
         psychologist_id: psychologist.id,
-        patient_id: data.patient_id,
-        invoice_number: invoiceNumber,
-        date: data.date,
-        due_date: data.due_date,
-        concept: data.concept,
-        quantity: data.quantity,
-        unit_price: data.unit_price,
+        patient_id: datos.patient_id,
+        invoice_date: datos.invoice_date,
+        due_date: datos.due_date,
+        amount: datos.amount,
+        tax_rate: taxRate,
         total_amount: totalAmount,
         status: 'draft',
-        payment_method: data.payment_method,
-        notes: data.notes
+        notes: datos.notes
       })
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email)
-      `)
+      .select()
       .single()
 
     if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al crear factura: ${error.message}`)
     }
 
     revalidatePath('/facturacion')
-    return { success: true, data: invoice }
+    return nuevaFactura
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en crearFactura:', error)
+    throw error
   }
 }
 
-export async function getAllInvoices(): Promise<{ success: boolean; data?: Invoice[]; error?: string }> {
+// Actualizar factura
+export async function actualizarFactura(facturaId: string, datos: ActualizarFacturaData): Promise<Factura> {
   try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
-    const { data: invoices, error } = await supabase
-      .from('invoices')
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email)
-      `)
-      .eq('psychologist_id', psychologist.id)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, data: invoices || [] }
-  } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
-  }
-}
-
-export async function getInvoice(id: string): Promise<{ success: boolean; data?: Invoice; error?: string }> {
-  try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
-    }
-
-    const { data: psychologist, error: psychError } = await supabase
-      .from('psychologists')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
-    }
-
-    const { data: invoice, error } = await supabase
-      .from('invoices')
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email)
-      `)
-      .eq('id', id)
-      .eq('psychologist_id', psychologist.id)
-      .single()
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, data: invoice }
-  } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
-  }
-}
-
-export async function updateInvoice(id: string, data: UpdateInvoiceData): Promise<{ success: boolean; data?: Invoice; error?: string }> {
-  try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
-    }
-
-    const { data: psychologist, error: psychError } = await supabase
-      .from('psychologists')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
-    }
-
-    const updateData: any = { ...data }
-    
-    // Recalcular total si se actualizan cantidad o precio
-    if (data.quantity !== undefined || data.unit_price !== undefined) {
-      const { data: currentInvoice } = await supabase
+    // Recalcular total si se actualiza amount o tax_rate
+    let updateData = { ...datos }
+    if (datos.amount !== undefined || datos.tax_rate !== undefined) {
+      const { data: facturaActual } = await supabase
         .from('invoices')
-        .select('quantity, unit_price')
-        .eq('id', id)
+        .select('amount, tax_rate')
+        .eq('id', facturaId)
         .eq('psychologist_id', psychologist.id)
         .single()
 
-      if (currentInvoice) {
-        const quantity = data.quantity ?? currentInvoice.quantity
-        const unitPrice = data.unit_price ?? currentInvoice.unit_price
-        updateData.total_amount = quantity * unitPrice
+      if (facturaActual) {
+        const amount = datos.amount ?? facturaActual.amount
+        const taxRate = datos.tax_rate ?? facturaActual.tax_rate
+        updateData.total_amount = amount + (amount * taxRate / 100)
       }
     }
 
-    const { data: invoice, error } = await supabase
+    const { data: facturaActualizada, error } = await supabase
       .from('invoices')
-      .update(updateData)
-      .eq('id', id)
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', facturaId)
       .eq('psychologist_id', psychologist.id)
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email)
-      `)
+      .select()
       .single()
 
     if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al actualizar factura: ${error.message}`)
     }
 
     revalidatePath('/facturacion')
-    return { success: true, data: invoice }
+    return facturaActualizada
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en actualizarFactura:', error)
+    throw error
   }
 }
 
-export async function deleteInvoice(id: string): Promise<{ success: boolean; error?: string }> {
+// Eliminar factura
+export async function eliminarFactura(facturaId: string): Promise<void> {
   try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
     const { error } = await supabase
       .from('invoices')
       .delete()
-      .eq('id', id)
+      .eq('id', facturaId)
       .eq('psychologist_id', psychologist.id)
 
     if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al eliminar factura: ${error.message}`)
     }
 
     revalidatePath('/facturacion')
-    return { success: true }
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en eliminarFactura:', error)
+    throw error
   }
 }
 
-export async function updateInvoiceStatus(id: string, status: string): Promise<{ success: boolean; data?: Invoice; error?: string }> {
+// Marcar factura como pagada
+export async function marcarFacturaComoPagada(facturaId: string): Promise<Factura> {
   try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
-    const { data: invoice, error } = await supabase
+    const { data: facturaActualizada, error } = await supabase
       .from('invoices')
-      .update({ status })
-      .eq('id', id)
+      .update({
+        status: 'paid',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', facturaId)
       .eq('psychologist_id', psychologist.id)
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Error al marcar factura como pagada: ${error.message}`)
+    }
+
+    revalidatePath('/facturacion')
+    return facturaActualizada
+  } catch (error) {
+    console.error('Error en marcarFacturaComoPagada:', error)
+    throw error
+  }
+}
+
+// Obtener estadísticas de facturación
+export async function obtenerEstadisticasFacturacion() {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
+
+    // Total de facturas
+    const { count: totalFacturas } = await supabase
+      .from('invoices')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+
+    // Facturas pagadas
+    const { count: facturasPagadas } = await supabase
+      .from('invoices')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .eq('status', 'paid')
+
+    // Facturas pendientes
+    const { count: facturasPendientes } = await supabase
+      .from('invoices')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .in('status', ['draft', 'sent', 'overdue'])
+
+    // Ingresos totales
+    const { data: facturasPagadasData } = await supabase
+      .from('invoices')
+      .select('total_amount')
+      .eq('psychologist_id', psychologist.id)
+      .eq('status', 'paid')
+
+    const ingresosTotales = facturasPagadasData?.reduce((sum, factura) => sum + factura.total_amount, 0) || 0
+
+    // Ingresos del mes actual
+    const inicioMes = new Date()
+    inicioMes.setDate(1)
+    inicioMes.setHours(0, 0, 0, 0)
+
+    const { data: facturasMesActual } = await supabase
+      .from('invoices')
+      .select('total_amount')
+      .eq('psychologist_id', psychologist.id)
+      .eq('status', 'paid')
+      .gte('updated_at', inicioMes.toISOString())
+
+    const ingresosMesActual = facturasMesActual?.reduce((sum, factura) => sum + factura.total_amount, 0) || 0
+
+    return {
+      totalFacturas: totalFacturas || 0,
+      facturasPagadas: facturasPagadas || 0,
+      facturasPendientes: facturasPendientes || 0,
+      ingresosTotales,
+      ingresosMesActual
+    }
+  } catch (error) {
+    console.error('Error en obtenerEstadisticasFacturacion:', error)
+    throw error
+  }
+}
+
+// Generar factura automática desde cita completada
+export async function generarFacturaDesdeCita(appointmentId: string, amount: number): Promise<Factura> {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
+
+    // Obtener información de la cita
+    const { data: appointment } = await supabase
+      .from('appointments')
       .select(`
-        *,
-        patient:patients(id, first_name, last_name, email)
+        patient_id,
+        appointment_date,
+        patients!inner(first_name, last_name)
       `)
+      .eq('id', appointmentId)
+      .eq('psychologist_id', psychologist.id)
+      .single()
+
+    if (!appointment) {
+      throw new Error('Cita no encontrada')
+    }
+
+    // Crear factura automática
+    const { data: nuevaFactura, error } = await supabase
+      .from('invoices')
+      .insert({
+        psychologist_id: psychologist.id,
+        patient_id: appointment.patient_id,
+        invoice_date: new Date().toISOString().split('T')[0],
+        amount: amount,
+        tax_rate: 0, // Por defecto sin impuestos
+        total_amount: amount,
+        status: 'draft',
+        notes: `Factura automática generada desde cita del ${new Date(appointment.appointment_date).toLocaleDateString('es-ES')}`
+      })
+      .select()
       .single()
 
     if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al generar factura automática: ${error.message}`)
     }
 
     revalidatePath('/facturacion')
-    return { success: true, data: invoice }
+    return nuevaFactura
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
-  }
-}
-
-export async function getInvoiceStats(): Promise<{ success: boolean; data?: any; error?: string }> {
-  try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
-    }
-
-    const { data: psychologist, error: psychError } = await supabase
-      .from('psychologists')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
-    }
-
-    const { data: invoices, error } = await supabase
-      .from('invoices')
-      .select('total_amount, status')
-      .eq('psychologist_id', psychologist.id)
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    const stats = {
-      totalInvoiced: invoices?.reduce((sum, inv) => sum + inv.total_amount, 0) || 0,
-      totalPaid: invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.total_amount, 0) || 0,
-      totalPending: invoices?.filter(inv => inv.status === 'sent' || inv.status === 'draft').reduce((sum, inv) => sum + inv.total_amount, 0) || 0,
-      totalOverdue: invoices?.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + inv.total_amount, 0) || 0,
-      totalInvoices: invoices?.length || 0
-    }
-
-    return { success: true, data: stats }
-  } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en generarFacturaDesdeCita:', error)
+    throw error
   }
 }

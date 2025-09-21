@@ -1,6 +1,4 @@
-'use client'
-
-import { useState, Suspense } from 'react'
+import { Suspense } from 'react'
 import { FileText, Plus, Search, Filter, Calendar, User, Clock, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,40 +8,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import ListaNotas from '@/components/ListaNotas'
 import ListaNotasSkeleton from '@/components/ListaNotasSkeleton'
 import NuevaNotaForm from '@/components/NuevaNotaForm'
-import { useAuth } from '@clerk/nextjs'
-import { useRouter } from 'next/navigation'
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+import { obtenerEstadisticasNotas } from '@/lib/actions/notes.actions'
 
-export default function NotasPage() {
-  const { isSignedIn, isLoaded } = useAuth()
-  const router = useRouter()
-  const [mostrarFormulario, setMostrarFormulario] = useState(false)
-  const [busqueda, setBusqueda] = useState('')
-  const [filtroPaciente, setFiltroPaciente] = useState('')
-  const [filtroTipo, setFiltroTipo] = useState('')
-  const [filtroFecha, setFiltroFecha] = useState('')
-
-  if (!isLoaded) {
-    return <div>Cargando...</div>
+export default async function NotasPage({
+  searchParams,
+}: {
+  searchParams: { 
+    search?: string; 
+    patient?: string; 
+    type?: string; 
+    date?: string;
+    showForm?: string;
+  };
+}) {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    redirect('/sign-in');
   }
 
-  if (!isSignedIn) {
-    router.push('/sign-in')
-    return null
+  // Obtener estadísticas de notas
+  let estadisticas;
+  try {
+    estadisticas = await obtenerEstadisticasNotas();
+  } catch (error) {
+    console.error('Error al obtener estadísticas:', error);
+    estadisticas = {
+      totalNotas: 0,
+      notasEstaSemana: 0,
+      tiposCount: {}
+    };
   }
 
-  const handleNuevaNota = () => {
-    setMostrarFormulario(true)
-  }
-
-  const handleGuardarNota = (nota: any) => {
-    console.log('Nueva nota creada:', nota)
-    // Aquí se implementaría la lógica para guardar en Supabase
-    setMostrarFormulario(false)
-  }
-
-  const handleCerrarFormulario = () => {
-    setMostrarFormulario(false)
-  }
+  const mostrarFormulario = searchParams.showForm === 'true';
 
   const tiposSesion = [
     { value: 'individual', label: 'Individual' },
@@ -76,9 +75,9 @@ export default function NotasPage() {
             <FileText className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">47</div>
+            <div className="text-2xl font-bold">{estadisticas.totalNotas}</div>
             <p className="text-xs text-gray-600">
-              +8 esta semana
+              +{estadisticas.notasEstaSemana} esta semana
             </p>
           </CardContent>
         </Card>
@@ -102,9 +101,9 @@ export default function NotasPage() {
             <Calendar className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">{estadisticas.notasEstaSemana}</div>
             <p className="text-xs text-gray-600">
-              +2 vs semana pasada
+              Notas creadas esta semana
             </p>
           </CardContent>
         </Card>
@@ -140,14 +139,13 @@ export default function NotasPage() {
               <label className="text-sm font-medium">Buscar</label>
               <Input
                 placeholder="Buscar en notas..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
+                defaultValue={searchParams.search || ''}
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Paciente</label>
-              <Select value={filtroPaciente} onValueChange={setFiltroPaciente}>
+              <Select defaultValue={searchParams.patient || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los pacientes" />
                 </SelectTrigger>
@@ -164,7 +162,7 @@ export default function NotasPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo de Sesión</label>
-              <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+              <Select defaultValue={searchParams.type || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los tipos" />
                 </SelectTrigger>
@@ -183,19 +181,13 @@ export default function NotasPage() {
               <label className="text-sm font-medium">Fecha</label>
               <Input
                 type="date"
-                value={filtroFecha}
-                onChange={(e) => setFiltroFecha(e.target.value)}
+                defaultValue={searchParams.date || ''}
               />
             </div>
           </div>
 
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => {
-              setBusqueda('')
-              setFiltroPaciente('')
-              setFiltroTipo('')
-              setFiltroFecha('')
-            }}>
+            <Button variant="outline">
               <Filter className="w-4 h-4 mr-2" />
               Limpiar Filtros
             </Button>
@@ -217,10 +209,10 @@ export default function NotasPage() {
         <CardContent>
           <Suspense fallback={<ListaNotasSkeleton />}>
             <ListaNotas 
-              busqueda={busqueda}
-              filtroPaciente={filtroPaciente}
-              filtroTipo={filtroTipo}
-              filtroFecha={filtroFecha}
+              busqueda={searchParams.search || ''}
+              filtroPaciente={searchParams.patient || ''}
+              filtroTipo={searchParams.type || ''}
+              filtroFecha={searchParams.date || ''}
             />
           </Suspense>
         </CardContent>
@@ -287,7 +279,7 @@ export default function NotasPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" onClick={handleNuevaNota}>
+              <Button variant="outline" className="w-full justify-start">
                 <Plus className="w-4 h-4 mr-2" />
                 Nueva Nota
               </Button>
@@ -307,8 +299,8 @@ export default function NotasPage() {
       {/* Formulario de Nueva Nota */}
       {mostrarFormulario && (
         <NuevaNotaForm
-          onClose={handleCerrarFormulario}
-          onSave={handleGuardarNota}
+          onClose={() => {}}
+          onSave={() => {}}
         />
       )}
     </div>

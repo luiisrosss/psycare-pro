@@ -1,12 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
-import DashboardMetrics from "@/components/DashboardMetrics";
-import DashboardMetricsSkeleton from "@/components/DashboardMetricsSkeleton";
-import UpcomingAppointments from "@/components/UpcomingAppointments";
-import UpcomingAppointmentsSkeleton from "@/components/UpcomingAppointmentsSkeleton";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Calendar, FileText } from "lucide-react";
+import DashboardWrapper from "@/components/DashboardWrapper";
 
 const Page = async () => {
   const { userId } = await auth();
@@ -23,48 +19,8 @@ const Page = async () => {
         <p className="mt-1 text-sm text-gray-600">Resumen de tu actividad clínica</p>
       </div>
 
-        {/* Métricas principales */}
-        <Suspense fallback={<DashboardMetricsSkeleton />}>
-          <DashboardMetrics />
-        </Suspense>
-
-        {/* Contenido principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-green-600" />
-                Próximas Citas
-              </CardTitle>
-              <CardDescription>
-                Citas programadas para hoy y los próximos días
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<UpcomingAppointmentsSkeleton />}>
-                <UpcomingAppointments />
-              </Suspense>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-purple-600" />
-                Notas Recientes
-              </CardTitle>
-              <CardDescription>
-                Últimas notas clínicas creadas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<RecentNotesSkeleton />}>
-                <RecentNotes />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Dashboard Content */}
+      <DashboardWrapper />
 
         {/* Estadísticas adicionales */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

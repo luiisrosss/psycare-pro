@@ -123,6 +123,37 @@ CREATE TABLE storage_usage (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Tabla de recordatorios
+CREATE TABLE reminders (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    psychologist_id UUID NOT NULL REFERENCES psychologists(id) ON DELETE CASCADE,
+    patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
+    reminder_type TEXT DEFAULT 'custom' CHECK (reminder_type IN ('appointment', 'payment', 'note', 'follow_up', 'custom')),
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    reminder_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_sent BOOLEAN DEFAULT false,
+    sent_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla de suscripciones
+CREATE TABLE subscriptions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id TEXT NOT NULL, -- Clerk user ID
+    plan_id TEXT NOT NULL CHECK (plan_id IN ('starter', 'professional', 'enterprise')),
+    status TEXT NOT NULL CHECK (status IN ('active', 'canceled', 'past_due', 'unpaid')),
+    current_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    current_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    cancel_at_period_end BOOLEAN DEFAULT false,
+    stripe_subscription_id TEXT NOT NULL UNIQUE,
+    stripe_customer_id TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Índices para optimizar consultas
 CREATE INDEX idx_psychologists_user_id ON psychologists(user_id);
 CREATE INDEX idx_patients_psychologist_id ON patients(psychologist_id);
@@ -144,6 +175,18 @@ CREATE INDEX idx_invoices_patient_id ON invoices(patient_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE INDEX idx_invoices_invoice_number ON invoices(invoice_number);
 CREATE INDEX idx_storage_usage_psychologist_id ON storage_usage(psychologist_id);
+CREATE INDEX idx_reminders_psychologist_id ON reminders(psychologist_id);
+CREATE INDEX idx_reminders_patient_id ON reminders(patient_id);
+CREATE INDEX idx_reminders_appointment_id ON reminders(appointment_id);
+CREATE INDEX idx_reminders_reminder_date ON reminders(reminder_date);
+CREATE INDEX idx_reminders_is_sent ON reminders(is_sent);
+
+-- Índices para suscripciones
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_plan_id ON subscriptions(plan_id);
+CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX idx_subscriptions_stripe_subscription_id ON subscriptions(stripe_subscription_id);
+CREATE INDEX idx_subscriptions_stripe_customer_id ON subscriptions(stripe_customer_id);
 
 -- Función para actualizar timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -162,6 +205,8 @@ CREATE TRIGGER update_clinical_notes_updated_at BEFORE UPDATE ON clinical_notes 
 CREATE TRIGGER update_documents_updated_at BEFORE UPDATE ON documents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_storage_usage_updated_at BEFORE UPDATE ON storage_usage FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_reminders_updated_at BEFORE UPDATE ON reminders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Función para generar número de factura automático
 CREATE OR REPLACE FUNCTION generate_invoice_number()
@@ -228,6 +273,7 @@ ALTER TABLE clinical_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE storage_usage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de Row Level Security
 -- Psicólogos pueden ver y modificar solo sus propios datos
@@ -314,4 +360,35 @@ CREATE POLICY "Psychologists can insert own storage usage" ON storage_usage FOR 
 );
 CREATE POLICY "Psychologists can update own storage usage" ON storage_usage FOR UPDATE USING (
     psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub')
+);
+
+-- Recordatorios pueden ser vistos y modificados solo por su psicólogo
+CREATE POLICY "Psychologists can view own reminders" ON reminders FOR SELECT USING (
+    psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub')
+);
+CREATE POLICY "Psychologists can insert own reminders" ON reminders FOR INSERT WITH CHECK (
+    psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub')
+);
+CREATE POLICY "Psychologists can update own reminders" ON reminders FOR UPDATE USING (
+    psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub')
+);
+CREATE POLICY "Psychologists can delete own reminders" ON reminders FOR DELETE USING (
+    psychologist_id IN (SELECT id FROM psychologists WHERE user_id = auth.jwt() ->> 'sub')
+);
+
+-- Habilitar RLS para suscripciones
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Suscripciones pueden ser vistas y modificadas solo por su usuario
+CREATE POLICY "Users can view own subscriptions" ON subscriptions FOR SELECT USING (
+    user_id = auth.jwt() ->> 'sub'
+);
+CREATE POLICY "Users can insert own subscriptions" ON subscriptions FOR INSERT WITH CHECK (
+    user_id = auth.jwt() ->> 'sub'
+);
+CREATE POLICY "Users can update own subscriptions" ON subscriptions FOR UPDATE USING (
+    user_id = auth.jwt() ->> 'sub'
+);
+CREATE POLICY "Users can delete own subscriptions" ON subscriptions FOR DELETE USING (
+    user_id = auth.jwt() ->> 'sub'
 );

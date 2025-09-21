@@ -1,348 +1,515 @@
 'use server'
 
-import { createClient } from '@/lib/supabase'
+import { createSupabaseClient } from '@/lib/supabase'
+import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 
-export interface Reminder {
+export interface Recordatorio {
   id: string
   psychologist_id: string
   patient_id: string
-  type: 'appointment' | 'payment' | 'follow_up'
+  appointment_id?: string
+  reminder_type: 'appointment' | 'payment' | 'note' | 'follow_up' | 'custom'
   title: string
-  description: string
-  scheduled_date: string
-  status: 'active' | 'sent' | 'cancelled'
-  delivery_method: 'email' | 'sms'
-  sent: boolean
+  message: string
+  reminder_date: string
+  is_sent: boolean
+  sent_at?: string
   created_at: string
   updated_at: string
-  patient?: {
-    id: string
+  patients?: {
     first_name: string
     last_name: string
     email?: string
     phone?: string
   }
+  appointments?: {
+    appointment_date: string
+    session_type: string
+  }
 }
 
-export interface CreateReminderData {
+export interface CrearRecordatorioData {
   patient_id: string
-  type: 'appointment' | 'payment' | 'follow_up'
+  appointment_id?: string
+  reminder_type: 'appointment' | 'payment' | 'note' | 'follow_up' | 'custom'
   title: string
-  description: string
-  scheduled_date: string
-  delivery_method: 'email' | 'sms'
+  message: string
+  reminder_date: string
 }
 
-export interface UpdateReminderData {
-  patient_id?: string
-  type?: string
+export interface ActualizarRecordatorioData {
   title?: string
-  description?: string
-  scheduled_date?: string
-  status?: string
-  delivery_method?: string
+  message?: string
+  reminder_date?: string
+  is_sent?: boolean
 }
 
-export async function createReminder(data: CreateReminderData): Promise<{ success: boolean; data?: Reminder; error?: string }> {
+// Obtener todos los recordatorios del psicólogo
+export async function obtenerRecordatorios(): Promise<Recordatorio[]> {
   try {
-    const supabase = createClient()
-    
-    // Obtener el usuario autenticado
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    // Obtener el psicólogo asociado al usuario
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
-    const { data: reminder, error } = await supabase
+    const { data: recordatorios, error } = await supabase
+      .from('reminders')
+      .select(`
+        *,
+        patients!inner(first_name, last_name, email, phone),
+        appointments(appointment_date, session_type)
+      `)
+      .eq('psychologist_id', psychologist.id)
+      .order('reminder_date', { ascending: true })
+
+    if (error) {
+      throw new Error(`Error al obtener recordatorios: ${error.message}`)
+    }
+
+    return recordatorios || []
+  } catch (error) {
+    console.error('Error en obtenerRecordatorios:', error)
+    throw error
+  }
+}
+
+// Obtener recordatorios pendientes
+export async function obtenerRecordatoriosPendientes(): Promise<Recordatorio[]> {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
+
+    const ahora = new Date().toISOString()
+
+    const { data: recordatorios, error } = await supabase
+      .from('reminders')
+      .select(`
+        *,
+        patients!inner(first_name, last_name, email, phone),
+        appointments(appointment_date, session_type)
+      `)
+      .eq('psychologist_id', psychologist.id)
+      .eq('is_sent', false)
+      .lte('reminder_date', ahora)
+      .order('reminder_date', { ascending: true })
+
+    if (error) {
+      throw new Error(`Error al obtener recordatorios pendientes: ${error.message}`)
+    }
+
+    return recordatorios || []
+  } catch (error) {
+    console.error('Error en obtenerRecordatoriosPendientes:', error)
+    throw error
+  }
+}
+
+// Crear nuevo recordatorio
+export async function crearRecordatorio(datos: CrearRecordatorioData): Promise<Recordatorio> {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
+
+    const { data: nuevoRecordatorio, error } = await supabase
       .from('reminders')
       .insert({
         psychologist_id: psychologist.id,
-        patient_id: data.patient_id,
-        type: data.type,
-        title: data.title,
-        description: data.description,
-        scheduled_date: data.scheduled_date,
-        status: 'active',
-        delivery_method: data.delivery_method,
-        sent: false
+        patient_id: datos.patient_id,
+        appointment_id: datos.appointment_id,
+        reminder_type: datos.reminder_type,
+        title: datos.title,
+        message: datos.message,
+        reminder_date: datos.reminder_date,
+        is_sent: false
       })
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email, phone)
-      `)
+      .select()
       .single()
 
     if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al crear recordatorio: ${error.message}`)
     }
 
     revalidatePath('/recordatorios')
-    return { success: true, data: reminder }
+    return nuevoRecordatorio
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en crearRecordatorio:', error)
+    throw error
   }
 }
 
-export async function getAllReminders(): Promise<{ success: boolean; data?: Reminder[]; error?: string }> {
+// Actualizar recordatorio
+export async function actualizarRecordatorio(recordatorioId: string, datos: ActualizarRecordatorioData): Promise<Recordatorio> {
   try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
-    const { data: reminders, error } = await supabase
+    const updateData = {
+      ...datos,
+      updated_at: new Date().toISOString()
+    }
+
+    // Si se marca como enviado, agregar timestamp
+    if (datos.is_sent && !datos.is_sent) {
+      updateData.sent_at = new Date().toISOString()
+    }
+
+    const { data: recordatorioActualizado, error } = await supabase
       .from('reminders')
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email, phone)
-      `)
+      .update(updateData)
+      .eq('id', recordatorioId)
       .eq('psychologist_id', psychologist.id)
-      .order('scheduled_date', { ascending: true })
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, data: reminders || [] }
-  } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
-  }
-}
-
-export async function getReminder(id: string): Promise<{ success: boolean; data?: Reminder; error?: string }> {
-  try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
-    }
-
-    const { data: psychologist, error: psychError } = await supabase
-      .from('psychologists')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
-    }
-
-    const { data: reminder, error } = await supabase
-      .from('reminders')
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email, phone)
-      `)
-      .eq('id', id)
-      .eq('psychologist_id', psychologist.id)
+      .select()
       .single()
 
     if (error) {
-      return { success: false, error: error.message }
-    }
-
-    return { success: true, data: reminder }
-  } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
-  }
-}
-
-export async function updateReminder(id: string, data: UpdateReminderData): Promise<{ success: boolean; data?: Reminder; error?: string }> {
-  try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
-    }
-
-    const { data: psychologist, error: psychError } = await supabase
-      .from('psychologists')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
-    }
-
-    const { data: reminder, error } = await supabase
-      .from('reminders')
-      .update(data)
-      .eq('id', id)
-      .eq('psychologist_id', psychologist.id)
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email, phone)
-      `)
-      .single()
-
-    if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al actualizar recordatorio: ${error.message}`)
     }
 
     revalidatePath('/recordatorios')
-    return { success: true, data: reminder }
+    return recordatorioActualizado
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en actualizarRecordatorio:', error)
+    throw error
   }
 }
 
-export async function deleteReminder(id: string): Promise<{ success: boolean; error?: string }> {
+// Eliminar recordatorio
+export async function eliminarRecordatorio(recordatorioId: string): Promise<void> {
   try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
     const { error } = await supabase
       .from('reminders')
       .delete()
-      .eq('id', id)
+      .eq('id', recordatorioId)
       .eq('psychologist_id', psychologist.id)
 
     if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al eliminar recordatorio: ${error.message}`)
     }
 
     revalidatePath('/recordatorios')
-    return { success: true }
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en eliminarRecordatorio:', error)
+    throw error
   }
 }
 
-export async function sendReminder(id: string): Promise<{ success: boolean; error?: string }> {
+// Marcar recordatorio como enviado
+export async function marcarRecordatorioComoEnviado(recordatorioId: string): Promise<Recordatorio> {
   try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
-    // Obtener el recordatorio
-    const { data: reminder, error: reminderError } = await supabase
+    const { data: recordatorioActualizado, error } = await supabase
       .from('reminders')
-      .select(`
-        *,
-        patient:patients(id, first_name, last_name, email, phone)
-      `)
-      .eq('id', id)
-      .eq('psychologist_id', psychologist.id)
-      .single()
-
-    if (reminderError || !reminder) {
-      return { success: false, error: 'Recordatorio no encontrado' }
-    }
-
-    // Aquí se implementaría la lógica de envío real
-    // Por ahora, solo marcamos como enviado
-    const { error: updateError } = await supabase
-      .from('reminders')
-      .update({ 
-        status: 'sent',
-        sent: true,
+      .update({
+        is_sent: true,
+        sent_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      .eq('id', id)
+      .eq('id', recordatorioId)
       .eq('psychologist_id', psychologist.id)
+      .select()
+      .single()
 
-    if (updateError) {
-      return { success: false, error: updateError.message }
+    if (error) {
+      throw new Error(`Error al marcar recordatorio como enviado: ${error.message}`)
     }
 
     revalidatePath('/recordatorios')
-    return { success: true }
+    return recordatorioActualizado
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en marcarRecordatorioComoEnviado:', error)
+    throw error
   }
 }
 
-export async function getReminderStats(): Promise<{ success: boolean; data?: any; error?: string }> {
+// Crear recordatorio automático para cita
+export async function crearRecordatorioParaCita(appointmentId: string, horasAntes: number = 24): Promise<Recordatorio> {
   try {
-    const supabase = createClient()
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'No autorizado' }
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    const { data: psychologist, error: psychError } = await supabase
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (psychError || !psychologist) {
-      return { success: false, error: 'Psicólogo no encontrado' }
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
     }
 
-    const { data: reminders, error } = await supabase
-      .from('reminders')
-      .select('status, sent')
+    // Obtener información de la cita
+    const { data: appointment } = await supabase
+      .from('appointments')
+      .select(`
+        patient_id,
+        appointment_date,
+        session_type,
+        patients!inner(first_name, last_name)
+      `)
+      .eq('id', appointmentId)
       .eq('psychologist_id', psychologist.id)
+      .single()
+
+    if (!appointment) {
+      throw new Error('Cita no encontrada')
+    }
+
+    // Calcular fecha del recordatorio
+    const fechaCita = new Date(appointment.appointment_date)
+    const fechaRecordatorio = new Date(fechaCita)
+    fechaRecordatorio.setHours(fechaRecordatorio.getHours() - horasAntes)
+
+    const { data: nuevoRecordatorio, error } = await supabase
+      .from('reminders')
+      .insert({
+        psychologist_id: psychologist.id,
+        patient_id: appointment.patient_id,
+        appointment_id: appointmentId,
+        reminder_type: 'appointment',
+        title: `Recordatorio de cita - ${appointment.patients.first_name} ${appointment.patients.last_name}`,
+        message: `Tienes una cita programada para ${fechaCita.toLocaleDateString('es-ES')} a las ${fechaCita.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}. Tipo de sesión: ${appointment.session_type}`,
+        reminder_date: fechaRecordatorio.toISOString(),
+        is_sent: false
+      })
+      .select()
+      .single()
 
     if (error) {
-      return { success: false, error: error.message }
+      throw new Error(`Error al crear recordatorio automático: ${error.message}`)
     }
 
-    const stats = {
-      totalActive: reminders?.filter(r => r.status === 'active').length || 0,
-      totalSent: reminders?.filter(r => r.status === 'sent').length || 0,
-      totalPending: reminders?.filter(r => !r.sent).length || 0,
-      totalReminders: reminders?.length || 0
-    }
-
-    return { success: true, data: stats }
+    revalidatePath('/recordatorios')
+    return nuevoRecordatorio
   } catch (error) {
-    return { success: false, error: 'Error interno del servidor' }
+    console.error('Error en crearRecordatorioParaCita:', error)
+    throw error
+  }
+}
+
+// Crear recordatorio automático para pago pendiente
+export async function crearRecordatorioParaPago(invoiceId: string): Promise<Recordatorio> {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
+
+    // Obtener información de la factura
+    const { data: invoice } = await supabase
+      .from('invoices')
+      .select(`
+        patient_id,
+        invoice_number,
+        total_amount,
+        due_date,
+        patients!inner(first_name, last_name)
+      `)
+      .eq('id', invoiceId)
+      .eq('psychologist_id', psychologist.id)
+      .single()
+
+    if (!invoice) {
+      throw new Error('Factura no encontrada')
+    }
+
+    // Calcular fecha del recordatorio (3 días antes del vencimiento)
+    const fechaVencimiento = new Date(invoice.due_date)
+    const fechaRecordatorio = new Date(fechaVencimiento)
+    fechaRecordatorio.setDate(fechaRecordatorio.getDate() - 3)
+
+    const { data: nuevoRecordatorio, error } = await supabase
+      .from('reminders')
+      .insert({
+        psychologist_id: psychologist.id,
+        patient_id: invoice.patient_id,
+        reminder_type: 'payment',
+        title: `Recordatorio de pago - ${invoice.patients.first_name} ${invoice.patients.last_name}`,
+        message: `La factura ${invoice.invoice_number} por ${invoice.total_amount}€ vence el ${fechaVencimiento.toLocaleDateString('es-ES')}. Recuerda contactar al paciente para el pago.`,
+        reminder_date: fechaRecordatorio.toISOString(),
+        is_sent: false
+      })
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Error al crear recordatorio de pago: ${error.message}`)
+    }
+
+    revalidatePath('/recordatorios')
+    return nuevoRecordatorio
+  } catch (error) {
+    console.error('Error en crearRecordatorioParaPago:', error)
+    throw error
+  }
+}
+
+// Obtener estadísticas de recordatorios
+export async function obtenerEstadisticasRecordatorios() {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
+
+    // Total de recordatorios
+    const { count: totalRecordatorios } = await supabase
+      .from('reminders')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+
+    // Recordatorios enviados
+    const { count: recordatoriosEnviados } = await supabase
+      .from('reminders')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .eq('is_sent', true)
+
+    // Recordatorios pendientes
+    const ahora = new Date().toISOString()
+    const { count: recordatoriosPendientes } = await supabase
+      .from('reminders')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .eq('is_sent', false)
+      .lte('reminder_date', ahora)
+
+    // Recordatorios de hoy
+    const inicioDia = new Date()
+    inicioDia.setHours(0, 0, 0, 0)
+    const finDia = new Date()
+    finDia.setHours(23, 59, 59, 999)
+
+    const { count: recordatoriosHoy } = await supabase
+      .from('reminders')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .gte('reminder_date', inicioDia.toISOString())
+      .lte('reminder_date', finDia.toISOString())
+
+    return {
+      totalRecordatorios: totalRecordatorios || 0,
+      recordatoriosEnviados: recordatoriosEnviados || 0,
+      recordatoriosPendientes: recordatoriosPendientes || 0,
+      recordatoriosHoy: recordatoriosHoy || 0
+    }
+  } catch (error) {
+    console.error('Error en obtenerEstadisticasRecordatorios:', error)
+    throw error
   }
 }

@@ -1,36 +1,48 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, User, Calendar, Clock, X, Save, Eye } from 'lucide-react'
+import { X, Save, FileText, User, Calendar, Clock, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import AISessionSummary from './AISessionSummary'
-
-interface Paciente {
-  id: string
-  nombre: string
-  email: string
-  telefono: string
-}
+import { cn } from '@/lib/utils'
 
 interface NuevaNotaFormProps {
   onClose: () => void
   onSave: (nota: any) => void
 }
 
-// Datos de ejemplo de pacientes
+interface Paciente {
+  id: string
+  nombre: string
+}
+
+// Datos de ejemplo
 const pacientesEjemplo: Paciente[] = [
-  { id: '1', nombre: 'María García', email: 'maria@email.com', telefono: '+34 600 123 456' },
-  { id: '2', nombre: 'Juan Pérez', email: 'juan@email.com', telefono: '+34 600 234 567' },
-  { id: '3', nombre: 'Ana López', email: 'ana@email.com', telefono: '+34 600 345 678' },
-  { id: '4', nombre: 'Carlos Ruiz', email: 'carlos@email.com', telefono: '+34 600 456 789' },
-  { id: '5', nombre: 'Laura Martín', email: 'laura@email.com', telefono: '+34 600 567 890' }
+  { id: '1', nombre: 'María García' },
+  { id: '2', nombre: 'Juan Pérez' },
+  { id: '3', nombre: 'Ana López' },
+  { id: '4', nombre: 'Carlos Ruiz' },
+  { id: '5', nombre: 'Laura Martín' }
+]
+
+const tiposSesion = [
+  { value: 'individual', label: 'Individual' },
+  { value: 'pareja', label: 'Pareja' },
+  { value: 'familiar', label: 'Familiar' },
+  { value: 'grupal', label: 'Grupal' }
+]
+
+const tiposNota = [
+  { value: 'session', label: 'Sesión' },
+  { value: 'assessment', label: 'Evaluación' },
+  { value: 'treatment_plan', label: 'Plan de Tratamiento' },
+  { value: 'progress', label: 'Progreso' },
+  { value: 'other', label: 'Otro' }
 ]
 
 export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
@@ -38,110 +50,54 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
     pacienteId: '',
     fecha: new Date().toISOString().split('T')[0],
     tipo: 'individual',
-    duracion: '50',
+    tipoNota: 'session',
+    duracion: 50,
+    titulo: '',
     contenido: '',
     resumen: '',
-    estado: 'borrador'
+    tags: [] as string[],
+    esConfidencial: true
   })
 
+  const [nuevoTag, setNuevoTag] = useState('')
   const [errores, setErrores] = useState<Record<string, string>>({})
-  const [tabActivo, setTabActivo] = useState('contenido')
 
-  const tiposSesion = [
-    { value: 'individual', label: 'Individual', icon: User, color: 'bg-blue-100 text-blue-800' },
-    { value: 'pareja', label: 'Pareja', icon: User, color: 'bg-green-100 text-green-800' },
-    { value: 'familiar', label: 'Familiar', icon: User, color: 'bg-purple-100 text-purple-800' },
-    { value: 'grupal', label: 'Grupal', icon: User, color: 'bg-orange-100 text-orange-800' }
-  ]
-
-  const duraciones = [
-    { value: '30', label: '30 minutos' },
-    { value: '45', label: '45 minutos' },
-    { value: '50', label: '50 minutos' },
-    { value: '60', label: '1 hora' },
-    { value: '90', label: '1.5 horas' },
-    { value: '120', label: '2 horas' }
-  ]
-
-  const plantillas = [
-    {
-      id: 'evaluacion_inicial',
-      nombre: 'Evaluación Inicial',
-      contenido: `## Evaluación Inicial
-
-### Información del Paciente
-- **Motivo de consulta:** 
-- **Historia clínica relevante:** 
-- **Medicamentos actuales:** 
-- **Expectativas del tratamiento:** 
-
-### Observaciones Clínicas
-- **Estado de ánimo:** 
-- **Nivel de ansiedad:** 
-- **Comunicación:** 
-- **Insight:** 
-
-### Plan de Tratamiento
-- **Objetivos terapéuticos:** 
-- **Frecuencia de sesiones:** 
-- **Técnicas a utilizar:** 
-
-### Notas Adicionales
-`
-    },
-    {
-      id: 'sesion_individual',
-      nombre: 'Sesión Individual',
-      contenido: `## Sesión Individual
-
-### Resumen de la Sesión
-- **Temas abordados:** 
-- **Técnicas utilizadas:** 
-- **Respuesta del paciente:** 
-
-### Progreso Observado
-- **Mejoras identificadas:** 
-- **Áreas de trabajo:** 
-- **Resistencia o dificultades:** 
-
-### Tareas para la Próxima Sesión
-- **Ejercicios asignados:** 
-- **Temas a abordar:** 
-
-### Notas Clínicas
-`
-    },
-    {
-      id: 'terapia_pareja',
-      nombre: 'Terapia de Pareja',
-      contenido: `## Terapia de Pareja
-
-### Dinámica de la Pareja
-- **Patrones de comunicación observados:** 
-- **Conflictos identificados:** 
-- **Fortalezas de la relación:** 
-
-### Trabajo Realizado
-- **Técnicas aplicadas:** 
-- **Ejercicios realizados:** 
-- **Respuesta de ambos miembros:** 
-
-### Progreso
-- **Mejoras en la comunicación:** 
-- **Resolución de conflictos:** 
-- **Intimidad emocional:** 
-
-### Plan para la Próxima Sesión
-`
-    }
-  ]
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
     
-    // Limpiar error si se corrige el campo
+    // Limpiar error si existe
     if (errores[field]) {
-      setErrores(prev => ({ ...prev, [field]: '' }))
+      setErrores(prev => ({
+        ...prev,
+        [field]: ''
+      }))
+    }
+  }
+
+  const handleAgregarTag = () => {
+    if (nuevoTag.trim() && !formData.tags.includes(nuevoTag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, nuevoTag.trim()]
+      }))
+      setNuevoTag('')
+    }
+  }
+
+  const handleEliminarTag = (tag: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }))
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAgregarTag()
     }
   }
 
@@ -156,8 +112,16 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
       nuevosErrores.fecha = 'Debe seleccionar una fecha'
     }
 
+    if (!formData.titulo.trim()) {
+      nuevosErrores.titulo = 'El título es obligatorio'
+    }
+
     if (!formData.contenido.trim()) {
-      nuevosErrores.contenido = 'El contenido de la nota es obligatorio'
+      nuevosErrores.contenido = 'El contenido es obligatorio'
+    }
+
+    if (formData.duracion <= 0) {
+      nuevosErrores.duracion = 'La duración debe ser mayor a 0'
     }
 
     setErrores(nuevosErrores)
@@ -167,48 +131,56 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (validarFormulario()) {
-      const pacienteSeleccionado = pacientesEjemplo.find(p => p.id === formData.pacienteId)
-      
-      const nuevaNota = {
-        id: Date.now().toString(),
-        paciente: pacienteSeleccionado?.nombre || '',
-        pacienteId: formData.pacienteId,
-        fecha: formData.fecha,
-        tipo: formData.tipo,
-        duracion: parseInt(formData.duracion),
-        contenido: formData.contenido,
-        resumen: formData.resumen,
-        estado: formData.estado,
-        fechaCreacion: new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-      }
+    if (!validarFormulario()) {
+      return
+    }
 
-      onSave(nuevaNota)
-      onClose()
+    const pacienteSeleccionado = pacientesEjemplo.find(p => p.id === formData.pacienteId)
+    
+    const nuevaNota = {
+      id: Date.now().toString(),
+      paciente: pacienteSeleccionado?.nombre || '',
+      pacienteId: formData.pacienteId,
+      fecha: formData.fecha,
+      tipo: formData.tipo,
+      tipoNota: formData.tipoNota,
+      duracion: formData.duracion,
+      titulo: formData.titulo,
+      contenido: formData.contenido,
+      resumen: formData.resumen,
+      tags: formData.tags,
+      esConfidencial: formData.esConfidencial,
+      estado: 'borrador',
+      fechaCreacion: new Date().toISOString(),
+      fechaActualizacion: new Date().toISOString()
+    }
+
+    onSave(nuevaNota)
+  }
+
+  const obtenerColorTipo = (tipo: string) => {
+    switch (tipo) {
+      case 'individual':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'pareja':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'familiar':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'grupal':
+        return 'bg-orange-100 text-orange-800 border-orange-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
-
-  const aplicarPlantilla = (plantilla: any) => {
-    setFormData(prev => ({ ...prev, contenido: plantilla.contenido }))
-    setTabActivo('contenido')
-  }
-
-  const pacienteSeleccionado = pacientesEjemplo.find(p => p.id === formData.pacienteId)
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Nueva Nota Clínica
-            </CardTitle>
-            <CardDescription>
-              Documenta una nueva sesión clínica
-            </CardDescription>
-          </div>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Nueva Nota Clínica
+          </CardTitle>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
@@ -216,57 +188,82 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Información Básica */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Información básica */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="paciente">Paciente *</Label>
-                <Select value={formData.pacienteId} onValueChange={(value) => handleInputChange('pacienteId', value)}>
-                  <SelectTrigger className={errores.pacienteId ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Selecciona un paciente" />
+                <Select 
+                  value={formData.pacienteId} 
+                  onValueChange={(value) => handleInputChange('pacienteId', value)}
+                >
+                  <SelectTrigger className={cn(errores.pacienteId && 'border-red-500')}>
+                    <SelectValue placeholder="Seleccionar paciente" />
                   </SelectTrigger>
                   <SelectContent>
                     {pacientesEjemplo.map((paciente) => (
                       <SelectItem key={paciente.id} value={paciente.id}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{paciente.nombre}</span>
-                          <span className="text-sm text-gray-500">{paciente.email}</span>
-                        </div>
+                        {paciente.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {errores.pacienteId && (
-                  <p className="text-sm text-red-500">{errores.pacienteId}</p>
+                  <p className="text-sm text-red-600">{errores.pacienteId}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fecha">Fecha *</Label>
+                <Label htmlFor="fecha">Fecha de la sesión *</Label>
                 <Input
-                  id="fecha"
                   type="date"
                   value={formData.fecha}
                   onChange={(e) => handleInputChange('fecha', e.target.value)}
-                  className={errores.fecha ? 'border-red-500' : ''}
+                  className={cn(errores.fecha && 'border-red-500')}
                 />
                 {errores.fecha && (
-                  <p className="text-sm text-red-500">{errores.fecha}</p>
+                  <p className="text-sm text-red-600">{errores.fecha}</p>
                 )}
+              </div>
+            </div>
+
+            {/* Tipo de sesión y nota */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tipo">Tipo de sesión</Label>
+                <Select 
+                  value={formData.tipo} 
+                  onValueChange={(value) => handleInputChange('tipo', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiposSesion.map((tipo) => (
+                      <SelectItem key={tipo.value} value={tipo.value}>
+                        <div className="flex items-center gap-2">
+                          <Badge className={cn('text-xs border', obtenerColorTipo(tipo.value))}>
+                            {tipo.label}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="duracion">Duración</Label>
-                <Select value={formData.duracion} onValueChange={(value) => handleInputChange('duracion', value)}>
+                <Label htmlFor="tipoNota">Tipo de nota</Label>
+                <Select 
+                  value={formData.tipoNota} 
+                  onValueChange={(value) => handleInputChange('tipoNota', value)}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona duración" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {duraciones.map((duracion) => (
-                      <SelectItem key={duracion.value} value={duracion.value}>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          {duracion.label}
-                        </div>
+                    {tiposNota.map((tipo) => (
+                      <SelectItem key={tipo.value} value={tipo.value}>
+                        {tipo.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -274,136 +271,101 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
               </div>
             </div>
 
-            {/* Tipo de Sesión */}
+            {/* Duración */}
             <div className="space-y-2">
-              <Label>Tipo de Sesión</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {tiposSesion.map((tipo) => (
-                  <Button
-                    key={tipo.value}
-                    type="button"
-                    variant={formData.tipo === tipo.value ? 'default' : 'outline'}
-                    className={`justify-start ${formData.tipo === tipo.value ? '' : obtenerColorTipo(tipo.value)}`}
-                    onClick={() => handleInputChange('tipo', tipo.value)}
-                  >
-                    <tipo.icon className="h-4 w-4 mr-2" />
-                    {tipo.label}
-                  </Button>
-                ))}
-              </div>
+              <Label htmlFor="duracion">Duración (minutos) *</Label>
+              <Input
+                type="number"
+                min="15"
+                max="180"
+                step="15"
+                value={formData.duracion}
+                onChange={(e) => handleInputChange('duracion', parseInt(e.target.value))}
+                className={cn(errores.duracion && 'border-red-500')}
+              />
+              {errores.duracion && (
+                <p className="text-sm text-red-600">{errores.duracion}</p>
+              )}
             </div>
 
-            {/* Información del paciente seleccionado */}
-            {pacienteSeleccionado && (
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">Información del paciente</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                  <div>Email: {pacienteSeleccionado.email}</div>
-                  <div>Teléfono: {pacienteSeleccionado.telefono}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Tabs para contenido y plantillas */}
-            <Tabs value={tabActivo} onValueChange={setTabActivo}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="contenido">Contenido de la Nota</TabsTrigger>
-                <TabsTrigger value="plantillas">Plantillas</TabsTrigger>
-                <TabsTrigger value="ia">IA Resumen</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="contenido" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="contenido">Contenido de la Nota *</Label>
-                  <Textarea
-                    id="contenido"
-                    placeholder="Describe la sesión, observaciones clínicas, técnicas utilizadas, respuesta del paciente, progreso observado..."
-                    value={formData.contenido}
-                    onChange={(e) => handleInputChange('contenido', e.target.value)}
-                    className={errores.contenido ? 'border-red-500' : ''}
-                    rows={12}
-                  />
-                  {errores.contenido && (
-                    <p className="text-sm text-red-500">{errores.contenido}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="resumen">Resumen (Opcional)</Label>
-                  <Textarea
-                    id="resumen"
-                    placeholder="Resumen breve de la sesión para referencia rápida..."
-                    value={formData.resumen}
-                    onChange={(e) => handleInputChange('resumen', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="plantillas" className="space-y-4">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Plantillas Disponibles</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {plantillas.map((plantilla) => (
-                      <Card key={plantilla.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                        <CardHeader>
-                          <CardTitle className="text-base">{plantilla.nombre}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => aplicarPlantilla(plantilla)}
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                            Usar Plantilla
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="ia" className="space-y-4">
-                <AISessionSummary
-                  sessionNotes={formData.contenido}
-                  patientName={pacienteSeleccionado?.nombre || ''}
-                  sessionDate={formData.fecha}
-                  onSummaryGenerated={(summary) => {
-                    // Opcional: agregar el resumen al contenido de la nota
-                    setFormData(prev => ({
-                      ...prev,
-                      contenido: prev.contenido + '\n\n--- RESUMEN IA ---\n' + summary
-                    }))
-                  }}
-                />
-              </TabsContent>
-            </Tabs>
-
-            {/* Estado de la nota */}
+            {/* Título */}
             <div className="space-y-2">
-              <Label>Estado de la Nota</Label>
-              <Select value={formData.estado} onValueChange={(value) => handleInputChange('estado', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="borrador">Borrador</SelectItem>
-                  <SelectItem value="completada">Completada</SelectItem>
-                  <SelectItem value="pendiente">Pendiente</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="titulo">Título de la nota *</Label>
+              <Input
+                placeholder="Ej: Sesión de evaluación inicial"
+                value={formData.titulo}
+                onChange={(e) => handleInputChange('titulo', e.target.value)}
+                className={cn(errores.titulo && 'border-red-500')}
+              />
+              {errores.titulo && (
+                <p className="text-sm text-red-600">{errores.titulo}</p>
+              )}
+            </div>
+
+            {/* Contenido */}
+            <div className="space-y-2">
+              <Label htmlFor="contenido">Contenido de la nota *</Label>
+              <Textarea
+                placeholder="Describe los aspectos principales de la sesión, observaciones, técnicas utilizadas, progreso del paciente, etc."
+                value={formData.contenido}
+                onChange={(e) => handleInputChange('contenido', e.target.value)}
+                className={cn('min-h-32', errores.contenido && 'border-red-500')}
+              />
+              {errores.contenido && (
+                <p className="text-sm text-red-600">{errores.contenido}</p>
+              )}
+            </div>
+
+            {/* Resumen */}
+            <div className="space-y-2">
+              <Label htmlFor="resumen">Resumen (opcional)</Label>
+              <Textarea
+                placeholder="Resumen breve de los puntos clave de la sesión"
+                value={formData.resumen}
+                onChange={(e) => handleInputChange('resumen', e.target.value)}
+                className="min-h-20"
+              />
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-2">
+              <Label htmlFor="tags">Etiquetas</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Agregar etiqueta (ej: ansiedad, depresión, terapia cognitiva)"
+                  value={nuevoTag}
+                  onChange={(e) => setNuevoTag(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                />
+                <Button type="button" variant="outline" onClick={handleAgregarTag}>
+                  <Tag className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {formData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.tags.map((tag, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className="cursor-pointer"
+                      onClick={() => handleEliminarTag(tag)}
+                    >
+                      {tag}
+                      <X className="h-3 w-3 ml-1" />
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Botones */}
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                <Save className="h-4 w-4 mr-2" />
+              <Button type="submit" className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
                 Guardar Nota
               </Button>
             </div>
@@ -412,8 +374,4 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
       </Card>
     </div>
   )
-}
-
-function obtenerColorTipo(tipo: any) {
-  return tipo.color
 }

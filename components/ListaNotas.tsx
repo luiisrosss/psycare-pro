@@ -1,93 +1,58 @@
-'use client'
-
-import { useState } from 'react'
 import { FileText, User, Calendar, Clock, Eye, Edit, Trash2, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { obtenerNotas, eliminarNota } from '@/lib/actions/notes.actions'
 
 interface NotaClinica {
   id: string
-  paciente: string
-  pacienteId: string
-  fecha: string
-  tipo: 'individual' | 'pareja' | 'familiar' | 'grupal'
-  duracion: number
-  contenido: string
-  resumen?: string
-  estado: 'borrador' | 'completada' | 'pendiente'
-  fechaCreacion: string
-  fechaActualizacion: string
+  psychologist_id: string
+  patient_id: string
+  appointment_id?: string
+  note_type: 'session' | 'assessment' | 'treatment_plan' | 'progress' | 'other'
+  title: string
+  content: string
+  ai_summary?: string
+  tags: string[]
+  is_confidential: boolean
+  created_at: string
+  updated_at: string
+  patients?: {
+    first_name: string
+    last_name: string
+  }
+  appointments?: {
+    appointment_date: string
+    duration_minutes: number
+    session_type: string
+  }
 }
 
-// Datos de ejemplo
+// Datos de ejemplo para cuando no hay conexión a Supabase
 const notasEjemplo: NotaClinica[] = [
   {
     id: '1',
-    paciente: 'María García',
-    pacienteId: '1',
-    fecha: '2024-01-15',
-    tipo: 'individual',
-    duracion: 50,
-    contenido: 'Sesión enfocada en técnicas de relajación y manejo de ansiedad. El paciente mostró buena receptividad a los ejercicios de respiración.',
-    resumen: 'Técnicas de relajación y manejo de ansiedad. Buena receptividad.',
-    estado: 'completada',
-    fechaCreacion: '2024-01-15T10:00:00Z',
-    fechaActualizacion: '2024-01-15T10:50:00Z'
-  },
-  {
-    id: '2',
-    paciente: 'Juan Pérez',
-    pacienteId: '2',
-    fecha: '2024-01-15',
-    tipo: 'pareja',
-    duracion: 60,
-    contenido: 'Terapia de pareja enfocada en comunicación efectiva. Se trabajó en técnicas de escucha activa y expresión de emociones.',
-    resumen: 'Terapia de pareja - comunicación efectiva y escucha activa.',
-    estado: 'completada',
-    fechaCreacion: '2024-01-15T11:30:00Z',
-    fechaActualizacion: '2024-01-15T12:30:00Z'
-  },
-  {
-    id: '3',
-    paciente: 'Ana López',
-    pacienteId: '3',
-    fecha: '2024-01-16',
-    tipo: 'familiar',
-    duracion: 45,
-    contenido: 'Sesión familiar para abordar conflictos entre padres e hijos adolescentes. Se establecieron nuevas dinámicas de comunicación.',
-    resumen: 'Conflicto familiar - nuevas dinámicas de comunicación.',
-    estado: 'pendiente',
-    fechaCreacion: '2024-01-16T16:00:00Z',
-    fechaActualizacion: '2024-01-16T16:45:00Z'
-  },
-  {
-    id: '4',
-    paciente: 'Carlos Ruiz',
-    pacienteId: '4',
-    fecha: '2024-01-17',
-    tipo: 'individual',
-    duracion: 50,
-    contenido: 'Evaluación inicial del paciente. Se identificaron áreas de trabajo principales: autoestima y relaciones interpersonales.',
-    resumen: 'Evaluación inicial - autoestima y relaciones interpersonales.',
-    estado: 'completada',
-    fechaCreacion: '2024-01-17T10:00:00Z',
-    fechaActualizacion: '2024-01-17T10:50:00Z'
-  },
-  {
-    id: '5',
-    paciente: 'Laura Martín',
-    pacienteId: '5',
-    fecha: '2024-01-17',
-    tipo: 'individual',
-    duracion: 50,
-    contenido: 'Seguimiento de progreso. El paciente ha mostrado mejoras significativas en el manejo del estrés laboral.',
-    resumen: 'Seguimiento - mejoras en manejo del estrés laboral.',
-    estado: 'borrador',
-    fechaCreacion: '2024-01-17T14:30:00Z',
-    fechaActualizacion: '2024-01-17T15:20:00Z'
+    psychologist_id: '1',
+    patient_id: '1',
+    note_type: 'session',
+    title: 'Sesión de evaluación inicial',
+    content: 'Sesión enfocada en técnicas de relajación y manejo de ansiedad. El paciente mostró buena receptividad a los ejercicios de respiración.',
+    ai_summary: 'Técnicas de relajación y manejo de ansiedad. Buena receptividad.',
+    tags: ['ansiedad', 'relajación'],
+    is_confidential: true,
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T10:50:00Z',
+    patients: {
+      first_name: 'María',
+      last_name: 'García'
+    },
+    appointments: {
+      appointment_date: '2024-01-15T10:00:00Z',
+      duration_minutes: 50,
+      session_type: 'individual'
+    }
   }
 ]
 
@@ -98,60 +63,55 @@ interface ListaNotasProps {
   filtroFecha: string
 }
 
-export default function ListaNotas({ busqueda, filtroPaciente, filtroTipo, filtroFecha }: ListaNotasProps) {
-  const [notas, setNotas] = useState<NotaClinica[]>(notasEjemplo)
+export default async function ListaNotas({ busqueda, filtroPaciente, filtroTipo, filtroFecha }: ListaNotasProps) {
+  // Intentar obtener notas de Supabase, usar datos de ejemplo si falla
+  let notas: NotaClinica[] = notasEjemplo;
+  
+  try {
+    notas = await obtenerNotas();
+  } catch (error) {
+    console.error('Error al obtener notas:', error);
+    // Usar datos de ejemplo en caso de error
+  }
 
   const obtenerColorTipo = (tipo: string) => {
     switch (tipo) {
-      case 'individual':
+      case 'session':
         return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'pareja':
+      case 'assessment':
         return 'bg-green-100 text-green-800 border-green-200'
-      case 'familiar':
+      case 'treatment_plan':
         return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'grupal':
+      case 'progress':
         return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'other':
+        return 'bg-gray-100 text-gray-800 border-gray-200'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
-  const obtenerColorEstado = (estado: string) => {
-    switch (estado) {
-      case 'completada':
-        return 'bg-green-500'
-      case 'pendiente':
-        return 'bg-orange-500'
-      case 'borrador':
-        return 'bg-gray-500'
-      default:
-        return 'bg-gray-500'
-    }
+  const obtenerTextoEstado = (confidencial: boolean) => {
+    return confidencial ? 'Confidencial' : 'Público'
   }
 
-  const obtenerTextoEstado = (estado: string) => {
-    switch (estado) {
-      case 'completada':
-        return 'Completada'
-      case 'pendiente':
-        return 'Pendiente'
-      case 'borrador':
-        return 'Borrador'
-      default:
-        return 'Desconocido'
-    }
+  const obtenerTextoEstadoColor = (confidencial: boolean) => {
+    return confidencial ? 'border-red-500 text-red-700' : 'border-green-500 text-green-700'
   }
 
   const filtrarNotas = () => {
     return notas.filter(nota => {
+      const nombrePaciente = nota.patients ? `${nota.patients.first_name} ${nota.patients.last_name}` : '';
+      
       const cumpleBusqueda = !busqueda || 
-        nota.contenido.toLowerCase().includes(busqueda.toLowerCase()) ||
-        nota.paciente.toLowerCase().includes(busqueda.toLowerCase()) ||
-        (nota.resumen && nota.resumen.toLowerCase().includes(busqueda.toLowerCase()))
+        nota.content.toLowerCase().includes(busqueda.toLowerCase()) ||
+        nota.title.toLowerCase().includes(busqueda.toLowerCase()) ||
+        nombrePaciente.toLowerCase().includes(busqueda.toLowerCase()) ||
+        (nota.ai_summary && nota.ai_summary.toLowerCase().includes(busqueda.toLowerCase()))
 
-      const cumplePaciente = !filtroPaciente || nota.pacienteId === filtroPaciente
-      const cumpleTipo = !filtroTipo || nota.tipo === filtroTipo
-      const cumpleFecha = !filtroFecha || nota.fecha === filtroFecha
+      const cumplePaciente = !filtroPaciente || nota.patient_id === filtroPaciente
+      const cumpleTipo = !filtroTipo || nota.note_type === filtroTipo
+      const cumpleFecha = !filtroFecha || nota.created_at.split('T')[0] === filtroFecha
 
       return cumpleBusqueda && cumplePaciente && cumpleTipo && cumpleFecha
     })
@@ -174,8 +134,13 @@ export default function ListaNotas({ busqueda, filtroPaciente, filtroTipo, filtr
     })
   }
 
-  const handleEliminarNota = (id: string) => {
-    setNotas(notas.filter(nota => nota.id !== id))
+  const handleEliminarNota = async (id: string) => {
+    try {
+      await eliminarNota(id);
+      // La página se recargará automáticamente debido a revalidatePath
+    } catch (error) {
+      console.error('Error al eliminar nota:', error);
+    }
   }
 
   const handleVerNota = (id: string) => {
@@ -212,50 +177,58 @@ export default function ListaNotas({ busqueda, filtroPaciente, filtroTipo, filtr
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {nota.paciente}
+                    {nota.patients ? `${nota.patients.first_name} ${nota.patients.last_name}` : 'Paciente desconocido'}
                   </h3>
-                  <Badge className={cn('border', obtenerColorTipo(nota.tipo))}>
-                    {nota.tipo.charAt(0).toUpperCase() + nota.tipo.slice(1)}
+                  <Badge className={cn('border', obtenerColorTipo(nota.note_type))}>
+                    {nota.note_type.charAt(0).toUpperCase() + nota.note_type.slice(1)}
                   </Badge>
                   <Badge 
                     variant="outline"
-                    className={cn(
-                      'border',
-                      nota.estado === 'completada' && 'border-green-500 text-green-700',
-                      nota.estado === 'pendiente' && 'border-orange-500 text-orange-700',
-                      nota.estado === 'borrador' && 'border-gray-500 text-gray-700'
-                    )}
+                    className={cn('border', obtenerTextoEstadoColor(nota.is_confidential))}
                   >
-                    {obtenerTextoEstado(nota.estado)}
+                    {obtenerTextoEstado(nota.is_confidential)}
                   </Badge>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {formatearFecha(nota.fecha)}
+                    {formatearFecha(nota.created_at)}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {nota.duracion} min
-                  </div>
+                  {nota.appointments && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {nota.appointments.duration_minutes} min
+                    </div>
+                  )}
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    {formatearHora(nota.fechaCreacion)}
+                    {formatearHora(nota.created_at)}
                   </div>
                 </div>
 
                 <div className="mb-3">
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">{nota.title}</h4>
                   <p className="text-gray-700 line-clamp-2">
-                    {nota.contenido}
+                    {nota.content}
                   </p>
                 </div>
 
-                {nota.resumen && (
+                {nota.ai_summary && (
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm text-gray-600">
-                      <strong>Resumen:</strong> {nota.resumen}
+                      <strong>Resumen IA:</strong> {nota.ai_summary}
                     </p>
+                  </div>
+                )}
+
+                {nota.tags && nota.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {nota.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
                   </div>
                 )}
               </div>

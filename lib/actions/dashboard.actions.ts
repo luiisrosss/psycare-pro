@@ -1,193 +1,220 @@
-'use server';
+'use server'
 
-import { auth } from "@clerk/nextjs/server";
-import { createSupabaseClient } from "@/lib/supabase";
-import { DashboardMetrics } from "@/types";
+import { createSupabaseClient } from '@/lib/supabase'
+import { auth } from '@clerk/nextjs/server'
 
-export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
-    const { userId } = await auth();
-    if (!userId) throw new Error('Usuario no autenticado');
+export interface DashboardMetrics {
+  totalPatients: number
+  activePatients: number
+  appointmentsToday: number
+  appointmentsThisWeek: number
+  monthlyRevenue: number
+  pendingNotes: number
+  weeklyGrowth: number
+  monthlyGrowth: number
+  recentAppointments: Array<{
+    id: string
+    patient_name: string
+    appointment_date: string
+    session_type: string
+    status: string
+  }>
+  recentNotes: Array<{
+    id: string
+    patient_name: string
+    title: string
+    created_at: string
+    note_type: string
+  }>
+}
 
-    const supabase = createSupabaseClient();
-
-    // Obtener el ID del psicólogo
-    const { data: psychologist } = await supabase
-        .from('psychologists')
-        .select('id')
-        .eq('user_id', userId)
-        .single();
-
-    if (!psychologist) throw new Error('Perfil de psicólogo no encontrado');
-
-    const psychologistId = psychologist.id;
-
-    // Obtener estadísticas de pacientes
-    const { data: patients, error: patientsError } = await supabase
-        .from('patients')
-        .select('id, status')
-        .eq('psychologist_id', psychologistId);
-
-    if (patientsError) throw new Error(patientsError.message);
-
-    const totalPatients = patients.length;
-    const activePatients = patients.filter(p => p.status === 'active').length;
-
-    // Obtener citas de hoy
-    const today = new Date().toISOString().split('T')[0];
-    const { data: appointmentsToday, error: appointmentsTodayError } = await supabase
-        .from('appointments')
-        .select('id')
-        .eq('psychologist_id', psychologistId)
-        .eq('date', today)
-        .eq('status', 'scheduled');
-
-    if (appointmentsTodayError) throw new Error(appointmentsTodayError.message);
-
-    // Obtener citas de esta semana
-    const startOfWeek = new Date();
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
-
-    const { data: appointmentsThisWeek, error: appointmentsWeekError } = await supabase
-        .from('appointments')
-        .select('id')
-        .eq('psychologist_id', psychologistId)
-        .gte('date', startOfWeek.toISOString().split('T')[0])
-        .lte('date', endOfWeek.toISOString().split('T')[0])
-        .eq('status', 'scheduled');
-
-    if (appointmentsWeekError) throw new Error(appointmentsWeekError.message);
-
-    // Obtener ingresos del mes actual
-    const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
-    const { data: monthlyRevenue, error: revenueError } = await supabase
-        .from('appointments')
-        .select('fee')
-        .eq('psychologist_id', psychologistId)
-        .eq('status', 'completed')
-        .gte('date', `${currentMonth}-01`)
-        .lt('date', `${currentMonth}-32`);
-
-    if (revenueError) throw new Error(revenueError.message);
-
-    const monthlyRevenueAmount = monthlyRevenue.reduce((sum, appointment) => sum + appointment.fee, 0);
-
-    // Obtener notas pendientes (sin notas clínicas para citas completadas)
-    const { data: completedAppointments, error: completedError } = await supabase
-        .from('appointments')
-        .select('id')
-        .eq('psychologist_id', psychologistId)
-        .eq('status', 'completed')
-        .gte('date', today);
-
-    if (completedError) throw new Error(completedError.message);
-
-    const { data: clinicalNotes, error: notesError } = await supabase
-        .from('clinical_notes')
-        .select('appointment_id')
-        .eq('psychologist_id', psychologistId)
-        .in('appointment_id', completedAppointments.map(a => a.id));
-
-    if (notesError) throw new Error(notesError.message);
-
-    const pendingNotes = completedAppointments.length - clinicalNotes.length;
-
-    // Obtener próximas citas
-    const { data: upcomingAppointments, error: upcomingError } = await supabase
-        .from('appointments')
-        .select(`
-            *,
-            patient:patients(*)
-        `)
-        .eq('psychologist_id', psychologistId)
-        .eq('status', 'scheduled')
-        .gte('date', today)
-        .order('date', { ascending: true })
-        .order('start_time', { ascending: true })
-        .limit(5);
-
-    if (upcomingError) throw new Error(upcomingError.message);
-
-    return {
-        total_patients: totalPatients,
-        active_patients: activePatients,
-        appointments_today: appointmentsToday.length,
-        appointments_this_week: appointmentsThisWeek.length,
-        monthly_revenue: monthlyRevenueAmount,
-        pending_notes: pendingNotes,
-        upcoming_appointments: upcomingAppointments || []
-    };
-};
-
-export const getPsychologistProfile = async () => {
-    const { userId } = await auth();
-    if (!userId) throw new Error('Usuario no autenticado');
-
-    const supabase = createSupabaseClient();
-
-    const { data, error } = await supabase
-        .from('psychologists')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-    if (error) {
-        if (error.code === 'PGRST116') {
-            // No existe el perfil, retornar null
-            return null;
-        }
-        throw new Error(error.message);
+// Obtener métricas del dashboard
+export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      throw new Error('Usuario no autenticado')
     }
 
-    return data;
-};
+    const supabase = createSupabaseClient()
+    
+    const { data: psychologist } = await supabase
+      .from('psychologists')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
 
-export const createPsychologistProfile = async (formData: {
-    license_number: string;
-    specializations: string[];
-    bio?: string;
-    consultation_fee: number;
-}) => {
-    const { userId } = await auth();
-    if (!userId) throw new Error('Usuario no autenticado');
+    if (!psychologist) {
+      throw new Error('Psicólogo no encontrado')
+    }
 
-    const supabase = createSupabaseClient();
+    // Total de pacientes
+    const { count: totalPatients } = await supabase
+      .from('patients')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
 
-    const { data, error } = await supabase
-        .from('psychologists')
-        .insert({
-            user_id: userId,
-            ...formData
-        })
-        .select()
-        .single();
+    // Pacientes activos
+    const { count: activePatients } = await supabase
+      .from('patients')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .eq('status', 'active')
 
-    if (error) throw new Error(error.message);
+    // Citas de hoy
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    const finDia = new Date(hoy)
+    finDia.setHours(23, 59, 59, 999)
 
-    return data;
-};
+    const { count: appointmentsToday } = await supabase
+      .from('appointments')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .gte('appointment_date', hoy.toISOString())
+      .lte('appointment_date', finDia.toISOString())
 
-export const updatePsychologistProfile = async (formData: {
-    license_number?: string;
-    specializations?: string[];
-    bio?: string;
-    consultation_fee?: number;
-    working_hours?: any;
-}) => {
-    const { userId } = await auth();
-    if (!userId) throw new Error('Usuario no autenticado');
+    // Citas de esta semana
+    const inicioSemana = new Date()
+    inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay())
+    inicioSemana.setHours(0, 0, 0, 0)
+    
+    const finSemana = new Date(inicioSemana)
+    finSemana.setDate(finSemana.getDate() + 6)
+    finSemana.setHours(23, 59, 59, 999)
 
-    const supabase = createSupabaseClient();
+    const { count: appointmentsThisWeek } = await supabase
+      .from('appointments')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .gte('appointment_date', inicioSemana.toISOString())
+      .lte('appointment_date', finSemana.toISOString())
 
-    const { data, error } = await supabase
-        .from('psychologists')
-        .update(formData)
-        .eq('user_id', userId)
-        .select()
-        .single();
+    // Ingresos del mes actual
+    const inicioMes = new Date()
+    inicioMes.setDate(1)
+    inicioMes.setHours(0, 0, 0, 0)
 
-    if (error) throw new Error(error.message);
+    const { data: facturasMesActual } = await supabase
+      .from('invoices')
+      .select('total_amount')
+      .eq('psychologist_id', psychologist.id)
+      .eq('status', 'paid')
+      .gte('updated_at', inicioMes.toISOString())
 
-    return data;
-};
+    const monthlyRevenue = facturasMesActual?.reduce((sum, factura) => sum + factura.total_amount, 0) || 0
+
+    // Notas pendientes (estimación basada en citas completadas sin notas)
+    const { data: citasCompletadasSinNotas } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('psychologist_id', psychologist.id)
+      .eq('status', 'completed')
+      .is('clinical_notes', null)
+
+    const pendingNotes = citasCompletadasSinNotas?.length || 0
+
+    // Crecimiento semanal (estimación)
+    const semanaAnterior = new Date(inicioSemana)
+    semanaAnterior.setDate(semanaAnterior.getDate() - 7)
+    
+    const { count: citasSemanaAnterior } = await supabase
+      .from('appointments')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+      .gte('appointment_date', semanaAnterior.toISOString())
+      .lt('appointment_date', inicioSemana.toISOString())
+
+    const weeklyGrowth = citasSemanaAnterior ? 
+      Math.round(((appointmentsThisWeek - citasSemanaAnterior) / citasSemanaAnterior) * 100) : 0
+
+    // Crecimiento mensual (estimación)
+    const mesAnterior = new Date(inicioMes)
+    mesAnterior.setMonth(mesAnterior.getMonth() - 1)
+
+    const { data: facturasMesAnterior } = await supabase
+      .from('invoices')
+      .select('total_amount')
+      .eq('psychologist_id', psychologist.id)
+      .eq('status', 'paid')
+      .gte('updated_at', mesAnterior.toISOString())
+      .lt('updated_at', inicioMes.toISOString())
+
+    const ingresosMesAnterior = facturasMesAnterior?.reduce((sum, factura) => sum + factura.total_amount, 0) || 0
+    const monthlyGrowth = ingresosMesAnterior ? 
+      Math.round(((monthlyRevenue - ingresosMesAnterior) / ingresosMesAnterior) * 100) : 0
+
+    // Citas recientes
+    const { data: citasRecientes } = await supabase
+      .from('appointments')
+      .select(`
+        id,
+        appointment_date,
+        session_type,
+        status,
+        patients!inner(first_name, last_name)
+      `)
+      .eq('psychologist_id', psychologist.id)
+      .gte('appointment_date', hoy.toISOString())
+      .order('appointment_date', { ascending: true })
+      .limit(5)
+
+    const recentAppointments = citasRecientes?.map(cita => ({
+      id: cita.id,
+      patient_name: `${cita.patients.first_name} ${cita.patients.last_name}`,
+      appointment_date: cita.appointment_date,
+      session_type: cita.session_type,
+      status: cita.status
+    })) || []
+
+    // Notas recientes
+    const { data: notasRecientes } = await supabase
+      .from('clinical_notes')
+      .select(`
+        id,
+        title,
+        note_type,
+        created_at,
+        patients!inner(first_name, last_name)
+      `)
+      .eq('psychologist_id', psychologist.id)
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    const recentNotes = notasRecientes?.map(nota => ({
+      id: nota.id,
+      patient_name: `${nota.patients.first_name} ${nota.patients.last_name}`,
+      title: nota.title,
+      created_at: nota.created_at,
+      note_type: nota.note_type
+    })) || []
+
+    return {
+      totalPatients: totalPatients || 0,
+      activePatients: activePatients || 0,
+      appointmentsToday: appointmentsToday || 0,
+      appointmentsThisWeek: appointmentsThisWeek || 0,
+      monthlyRevenue,
+      pendingNotes,
+      weeklyGrowth,
+      monthlyGrowth,
+      recentAppointments,
+      recentNotes
+    }
+  } catch (error) {
+    console.error('Error en obtenerMetricasDashboard:', error)
+    // Retornar métricas por defecto en caso de error
+    return {
+      totalPatients: 0,
+      activePatients: 0,
+      appointmentsToday: 0,
+      appointmentsThisWeek: 0,
+      monthlyRevenue: 0,
+      pendingNotes: 0,
+      weeklyGrowth: 0,
+      monthlyGrowth: 0,
+      recentAppointments: [],
+      recentNotes: []
+    }
+  }
+}

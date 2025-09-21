@@ -1,19 +1,27 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, Calendar, DollarSign, FileText, TrendingUp, TrendingDown } from 'lucide-react'
+import { obtenerMetricasDashboard } from '@/lib/actions/dashboard.actions'
 
-export default function DashboardMetrics() {
-  // Datos de ejemplo - en producción vendrían de Supabase
-  const metrics = {
-    totalPatients: 47,
-    activePatients: 32,
-    appointmentsToday: 3,
-    appointmentsThisWeek: 12,
-    monthlyRevenue: 2840,
-    pendingNotes: 3,
-    weeklyGrowth: 12, // Porcentaje de crecimiento semanal
-    monthlyGrowth: 8   // Porcentaje de crecimiento mensual
+export default async function DashboardMetrics() {
+  // Obtener métricas reales de Supabase con manejo de errores
+  let metrics;
+  try {
+    metrics = await obtenerMetricasDashboard()
+  } catch (error) {
+    console.error('Error al obtener métricas del dashboard:', error)
+    // Métricas por defecto en caso de error
+    metrics = {
+      totalPatients: 0,
+      activePatients: 0,
+      appointmentsToday: 0,
+      appointmentsThisWeek: 0,
+      monthlyRevenue: 0,
+      pendingNotes: 0,
+      weeklyGrowth: 0,
+      monthlyGrowth: 0,
+      recentAppointments: [],
+      recentNotes: []
+    }
   }
 
   const formatCurrency = (amount: number) => {
