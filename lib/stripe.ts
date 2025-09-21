@@ -1,8 +1,27 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+let stripeInstance: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!stripeInstance) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not configured');
+    }
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-06-20',
+    });
+  }
+  return stripeInstance;
+}
+
+// Exportar stripe solo cuando esté disponible
+export const stripe = (() => {
+  try {
+    return getStripe();
+  } catch {
+    return null;
+  }
+})();
 
 export interface SubscriptionPlan {
   id: string;

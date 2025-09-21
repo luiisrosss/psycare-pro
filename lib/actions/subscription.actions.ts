@@ -151,7 +151,12 @@ export async function hasFeature(feature: string): Promise<boolean> {
 // Manejar webhook de Stripe
 export async function handleStripeWebhook(event: any) {
   try {
-    const supabase = createSupabaseClient()
+    // Para webhooks, usar Service Role Key (sin autenticación de usuario)
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
     switch (event.type) {
       case 'customer.subscription.created':
