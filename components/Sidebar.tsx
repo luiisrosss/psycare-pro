@@ -9,6 +9,7 @@ import {
   Calendar, 
   FileText, 
   CreditCard, 
+  Bell,
   Settings,
   ChevronRight,
   Plus
@@ -44,6 +45,12 @@ const navigation = [
     name: 'Facturación', 
     href: '/facturacion', 
     icon: CreditCard,
+    current: false
+  },
+  { 
+    name: 'Recordatorios', 
+    href: '/recordatorios', 
+    icon: Bell,
     current: false
   },
 ]
