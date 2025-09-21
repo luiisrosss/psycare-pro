@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
 import DashboardMetrics from "@/components/DashboardMetrics";
 import DashboardMetricsSkeleton from "@/components/DashboardMetricsSkeleton";
 import UpcomingAppointments from "@/components/UpcomingAppointments";
