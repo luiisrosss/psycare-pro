@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import CalendarioCitas from '@/components/CalendarioCitas'
 import CalendarioCitasSkeleton from '@/components/CalendarioCitasSkeleton'
 import NuevaCitaForm from '@/components/NuevaCitaForm'
+import GoogleCalendarIntegration from '@/components/GoogleCalendarIntegration'
 import { useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 
@@ -119,6 +120,14 @@ export default function CitasPage() {
           </Suspense>
         </CardContent>
       </Card>
+
+      {/* Integración con Google Calendar */}
+      <GoogleCalendarIntegration
+        isConnected={false}
+        onConnect={() => console.log('Conectando con Google Calendar...')}
+        onDisconnect={() => console.log('Desconectando Google Calendar...')}
+        onSync={() => console.log('Sincronizando con Google Calendar...')}
+      />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

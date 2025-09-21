@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import AISessionSummary from './AISessionSummary'
 
 interface Paciente {
   id: string
@@ -305,9 +306,10 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
 
             {/* Tabs para contenido y plantillas */}
             <Tabs value={tabActivo} onValueChange={setTabActivo}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="contenido">Contenido de la Nota</TabsTrigger>
                 <TabsTrigger value="plantillas">Plantillas</TabsTrigger>
+                <TabsTrigger value="ia">IA Resumen</TabsTrigger>
               </TabsList>
 
               <TabsContent value="contenido" className="space-y-4">
@@ -362,6 +364,21 @@ export default function NuevaNotaForm({ onClose, onSave }: NuevaNotaFormProps) {
                     ))}
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="ia" className="space-y-4">
+                <AISessionSummary
+                  sessionNotes={formData.contenido}
+                  patientName={pacienteSeleccionado?.nombre || ''}
+                  sessionDate={formData.fecha}
+                  onSummaryGenerated={(summary) => {
+                    // Opcional: agregar el resumen al contenido de la nota
+                    setFormData(prev => ({
+                      ...prev,
+                      contenido: prev.contenido + '\n\n--- RESUMEN IA ---\n' + summary
+                    }))
+                  }}
+                />
               </TabsContent>
             </Tabs>
 
