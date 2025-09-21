@@ -1,52 +1,156 @@
-# Configuración de Planes de Suscripción en Clerk
+# 🔧 CONFIGURACIÓN DE PLANES DE SUSCRIPCIÓN EN CLERK
 
-## Planes para PsyCare Pro
+## 📋 **PLANES DE SUSCRIPCIÓN PARA PSYCARE PRO**
 
-### 1. Starter Plan - €25/mes
-- **Límite de pacientes**: 25
-- **Límite de sesiones**: Ilimitadas
-- **Almacenamiento**: 200MB (optimizado)
-- **Funciones incluidas**:
-  - Gestión básica de pacientes
-  - Sistema de citas
-  - Notas clínicas básicas
-  - Dashboard básico
-  - Soporte por email
+### **PLAN 1: STARTER PLAN**
+```json
+{
+  "name": "Starter Plan",
+  "key": "starter_plan",
+  "description": "Plan competitivo para psicólogos en crecimiento",
+  "monthlyBaseFee": 29.00,
+  "annualDiscountMonthlyFee": 26.00,
+  "currency": "EUR",
+  "freeTrialDays": 14,
+  "publiclyAvailable": true,
+  "features": [
+    "Hasta 50 pacientes",
+    "1GB de almacenamiento",
+    "Gestión básica de citas",
+    "Notas clínicas básicas",
+    "Gestión avanzada de clínicas",
+    "Gestión avanzada de notas",
+    "Soporte por email",
+    "Backup básico",
+    "Cumplimiento HIPAA completo"
+  ],
+  "metadata": {
+    "patientLimit": 50,
+    "storageLimitMB": 1024,
+    "sessionLimit": "unlimited",
+    "aiFeatures": false,
+    "stripeIntegration": false,
+    "advancedReports": false,
+    "apiAccess": false,
+    "teamManagement": false,
+    "prioritySupport": false,
+    "mostPopular": false,
+    "targetAudience": "growing_psychologists"
+  }
+}
+```
 
-### 2. Professional Plan - €55/mes ⭐ **MÁS POPULAR**
-- **Límite de pacientes**: 150
-- **Límite de sesiones**: Ilimitadas
-- **Almacenamiento**: 1GB (optimizado)
-- **Funciones incluidas**:
-  - Todas las funciones del Starter
-  - Resúmenes con IA de las sesiones
-  - Reportes avanzados y analytics
-  - Análisis de tendencias de pacientes
-  - Exportación de datos completa
-  - Recordatorios automáticos (email + SMS)
-  - Integración con Stripe
-  - Facturación automática
-  - Dashboard avanzado con métricas
-  - Soporte prioritario por chat
-  - Backup automático
-  - Plantillas personalizables de notas
+### **PLAN 2: PROFESSIONAL PLAN** ⭐ **MÁS POPULAR**
+```json
+{
+  "name": "Professional Plan",
+  "key": "professional_plan",
+  "description": "⭐ El plan más popular - Ideal para psicólogos establecidos",
+  "monthlyBaseFee": 59.00,
+  "annualDiscountMonthlyFee": 53.00,
+  "currency": "EUR",
+  "freeTrialDays": 0,
+  "publiclyAvailable": true,
+  "features": [
+    "Hasta 200 pacientes",
+    "5GB de almacenamiento",
+    "Sesiones ilimitadas",
+    "IA para resúmenes de sesiones",
+    "Reportes avanzados",
+    "Soporte prioritario",
+    "Backup automático",
+    "Gestión avanzada de citas",
+    "Notas clínicas avanzadas",
+    "Integración con Google Calendar",
+    "Cumplimiento HIPAA completo"
+  ],
+  "metadata": {
+    "patientLimit": 200,
+    "storageLimitMB": 5120,
+    "sessionLimit": "unlimited",
+    "aiFeatures": true,
+    "stripeIntegration": false,
+    "advancedReports": true,
+    "apiAccess": false,
+    "teamManagement": false,
+    "prioritySupport": true,
+    "mostPopular": true,
+    "targetAudience": "established_psychologists"
+  }
+}
+```
 
-### 3. Premium Plan - €150/mes
-- **Límite de pacientes**: Ilimitado
-- **Límite de sesiones**: Ilimitado
-- **Almacenamiento**: Ilimitado
-- **Funciones incluidas**:
-  - Todas las funciones del Professional
-  - IA avanzada para análisis de progreso
-  - API personalizada completa
-  - Integración con sistemas externos
-  - Soporte prioritario 24/7 por teléfono
-  - Cumplimiento HIPAA completo
-  - Auditoría avanzada de accesos
-  - Múltiples ubicaciones/clínicas
-  - Gestión de equipo (hasta 5 usuarios)
-  - Reportes personalizados
-  - Integración con calendarios externos
+### **PLAN 3: ENTERPRISE PLAN** 🚀 **EMPRESA**
+```json
+{
+  "name": "Enterprise Plan",
+  "key": "enterprise_plan",
+  "description": "🚀 Solución empresarial con almacenamiento casi ilimitado",
+  "monthlyBaseFee": 149.00,
+  "annualDiscountMonthlyFee": 134.00,
+  "currency": "EUR",
+  "freeTrialDays": 0,
+  "publiclyAvailable": true,
+  "features": [
+    "Pacientes ilimitados",
+    "50GB de almacenamiento",
+    "Sesiones ilimitadas",
+    "IA para resúmenes de sesiones",
+    "Reportes avanzados",
+    "Soporte prioritario",
+    "Backup premium",
+    "Gestión avanzada de citas",
+    "Notas clínicas avanzadas",
+    "Integración con Google Calendar",
+    "Cumplimiento HIPAA completo"
+  ],
+  "metadata": {
+    "patientLimit": "unlimited",
+    "storageLimitMB": 51200,
+    "sessionLimit": "unlimited",
+    "aiFeatures": true,
+    "stripeIntegration": false,
+    "advancedReports": true,
+    "apiAccess": false,
+    "teamManagement": false,
+    "prioritySupport": true,
+    "mostPopular": false,
+    "targetAudience": "large_clinics_teams"
+  }
+}
+```
+
+---
+
+## 📊 **RESUMEN DE LÍMITES Y FUNCIONES**
+
+| Característica | Starter | Professional | Enterprise |
+|----------------|---------|--------------|------------|
+| **Precio Mensual** | €29 | €59 | €149 |
+| **Precio Anual** | €26/mes | €53/mes | €134/mes |
+| **Pacientes** | 50 | 200 | Ilimitados |
+| **Almacenamiento** | 1GB | 5GB | 50GB |
+| **Sesiones** | Ilimitadas | Ilimitadas | Ilimitadas |
+| **IA Resúmenes** | ❌ | ✅ | ✅ |
+| **Reportes Avanzados** | ❌ | ✅ | ✅ |
+| **Google Calendar** | ❌ | ✅ | ✅ |
+| **Soporte** | Email | Prioritario | Prioritario |
+| **Prueba Gratis** | 14 días | Sin prueba | Sin prueba |
+| **HIPAA** | ✅ | ✅ | ✅ |
+
+---
+
+## 🎯 **ESTRATEGIA DE CONVERSIÓN**
+
+### **DISTRIBUCIÓN ESPERADA:**
+- **30%** Starter (€29) - Psicólogos en crecimiento
+- **55%** Professional (€59) - **PLAN OBJETIVO** ⭐
+- **15%** Enterprise (€149) - Clínicas y equipos grandes
+
+### **PSICOLOGÍA DE PRECIOS:**
+- **Starter**: Precio competitivo para atraer
+- **Professional**: Mejor valor/precio (MÁS POPULAR)
+- **Enterprise**: Almacenamiento casi ilimitado para empresas
 
 ---
 
@@ -59,34 +163,41 @@
 ```
 Name: Starter Plan
 Key: starter_plan
-Description: Perfecto para psicólogos que están comenzando su práctica profesional
+Description: Plan competitivo para psicólogos en crecimiento
 
-Monthly base fee: €25.00
-Annual discount - Monthly base fee: €20.00 (20% descuento)
+Monthly base fee: €29.00
+Annual discount - Monthly base fee: €26.00 (10% descuento)
 
 Free trial: 14 Days
 
 Publicly available: ✅ SÍ
 
 Features:
-- 25 pacientes máximo
-- Sesiones ilimitadas
-- 200MB almacenamiento optimizado
-- Gestión básica de pacientes
-- Sistema de citas
+- Hasta 50 pacientes
+- 1GB de almacenamiento
+- Gestión básica de citas
 - Notas clínicas básicas
-- Dashboard básico
+- Gestión avanzada de clínicas
+- Gestión avanzada de notas
 - Soporte por email
+- Backup básico
+- Cumplimiento HIPAA completo
 ```
 
 **Metadata (en Advanced Settings):**
 ```json
 {
-  "patient_limit": 25,
-  "session_limit": -1,
-  "storage_limit": 200,
-  "features": ["basic_patients", "basic_appointments", "basic_notes", "basic_dashboard"],
-  "tier": "starter"
+  "patientLimit": 50,
+  "storageLimitMB": 1024,
+  "sessionLimit": "unlimited",
+  "aiFeatures": false,
+  "stripeIntegration": false,
+  "advancedReports": false,
+  "apiAccess": false,
+  "teamManagement": false,
+  "prioritySupport": false,
+  "mostPopular": false,
+  "targetAudience": "growing_psychologists"
 }
 ```
 
@@ -99,90 +210,92 @@ Features:
 ```
 Name: Professional Plan
 Key: professional_plan
-Description: ⭐ El plan más popular - Ideal para psicólogos establecidos con práctica en crecimiento
+Description: ⭐ El plan más popular - Ideal para psicólogos establecidos
 
-Monthly base fee: €55.00
-Annual discount - Monthly base fee: €49.50 (10% descuento)
+Monthly base fee: €59.00
+Annual discount - Monthly base fee: €53.00 (10% descuento)
 
-Free trial: 14 Days
+Free trial: 0 Days
 
 Publicly available: ✅ SÍ
 
 Features:
-- 150 pacientes máximo
+- Hasta 200 pacientes
+- 5GB de almacenamiento
 - Sesiones ilimitadas
-- 1GB almacenamiento optimizado
-- Todas las funciones del Starter
-- Resúmenes con IA de las sesiones
-- Reportes avanzados y analytics
-- Análisis de tendencias de pacientes
-- Exportación de datos completa
-- Recordatorios automáticos (email + SMS)
-- Integración con Stripe
-- Facturación automática
-- Dashboard avanzado con métricas
-- Soporte prioritario por chat
+- IA para resúmenes de sesiones
+- Reportes avanzados
+- Soporte prioritario
 - Backup automático
-- Plantillas personalizables de notas
+- Gestión avanzada de citas
+- Notas clínicas avanzadas
+- Integración con Google Calendar
+- Cumplimiento HIPAA completo
 ```
 
 **Metadata (en Advanced Settings):**
 ```json
 {
-  "patient_limit": 150,
-  "session_limit": -1,
-  "storage_limit": 1000,
-  "features": ["basic_patients", "basic_appointments", "basic_notes", "basic_dashboard", "ai_summaries", "advanced_reports", "analytics", "data_export", "auto_reminders", "stripe_integration", "auto_billing", "advanced_dashboard", "priority_support", "backup", "custom_templates"],
-  "tier": "professional",
-  "most_popular": true
+  "patientLimit": 200,
+  "storageLimitMB": 5120,
+  "sessionLimit": "unlimited",
+  "aiFeatures": true,
+  "stripeIntegration": false,
+  "advancedReports": true,
+  "apiAccess": false,
+  "teamManagement": false,
+  "prioritySupport": true,
+  "mostPopular": true,
+  "targetAudience": "established_psychologists"
 }
 ```
 
 ---
 
-### **PLAN 3: PREMIUM PLAN** 🚀 **EMPRESA**
+### **PLAN 3: ENTERPRISE PLAN** 🚀 **EMPRESA**
 
 **Configuración en Clerk:**
 
 ```
-Name: Premium Plan
-Key: premium_plan
-Description: 🚀 Para clínicas grandes, equipos y profesionales que necesitan máxima funcionalidad
+Name: Enterprise Plan
+Key: enterprise_plan
+Description: 🚀 Solución empresarial con almacenamiento casi ilimitado
 
-Monthly base fee: €150.00
-Annual discount - Monthly base fee: €135.00 (10% descuento)
+Monthly base fee: €149.00
+Annual discount - Monthly base fee: €134.00 (10% descuento)
 
-Free trial: 14 Days
+Free trial: 0 Days
 
 Publicly available: ✅ SÍ
 
 Features:
 - Pacientes ilimitados
+- 50GB de almacenamiento
 - Sesiones ilimitadas
-- Almacenamiento ilimitado
-- Todas las funciones del Professional
-- IA avanzada para análisis de progreso
-- API personalizada completa
-- Integración con sistemas externos
-- Soporte prioritario 24/7 por teléfono
+- IA para resúmenes de sesiones
+- Reportes avanzados
+- Soporte prioritario
+- Backup premium
+- Gestión avanzada de citas
+- Notas clínicas avanzadas
+- Integración con Google Calendar
 - Cumplimiento HIPAA completo
-- Auditoría avanzada de accesos
-- Múltiples ubicaciones/clínicas
-- Gestión de equipo (hasta 5 usuarios)
-- Reportes personalizados
-- Integración con calendarios externos
-- Backup automático premium
 ```
 
 **Metadata (en Advanced Settings):**
 ```json
 {
-  "patient_limit": -1,
-  "session_limit": -1,
-  "storage_limit": -1,
-  "features": ["advanced_ai_analysis", "stripe_integration", "auto_billing", "custom_api", "external_integrations", "priority_support_24_7", "hipaa_compliance", "advanced_audit", "multi_location", "team_management", "custom_reports", "calendar_integration", "premium_backup"],
-  "tier": "premium",
-  "enterprise": true
+  "patientLimit": "unlimited",
+  "storageLimitMB": 51200,
+  "sessionLimit": "unlimited",
+  "aiFeatures": true,
+  "stripeIntegration": false,
+  "advancedReports": true,
+  "apiAccess": false,
+  "teamManagement": false,
+  "prioritySupport": true,
+  "mostPopular": false,
+  "targetAudience": "large_clinics_teams"
 }
 ```
 
@@ -198,12 +311,14 @@ Features:
 5. Guarda el plan
 
 ### **2. Configurar precios:**
-- **Starter**: €25/mes, €20/mes anual
-- **Professional**: €45/mes, €36/mes anual  
-- **Premium**: €75/mes, €60/mes anual
+- **Starter**: €29/mes, €26/mes anual
+- **Professional**: €59/mes, €53/mes anual  
+- **Enterprise**: €149/mes, €134/mes anual
 
 ### **3. Configurar trial:**
-- Todos los planes: **14 días gratis**
+- **Starter**: 14 días gratis
+- **Professional**: Sin prueba gratis
+- **Enterprise**: Sin prueba gratis
 
 ---
 
@@ -220,8 +335,8 @@ if (has({ plan: 'starter_plan' })) {
   // Lógica para Starter
 } else if (has({ plan: 'professional_plan' })) {
   // Lógica para Professional  
-} else if (has({ plan: 'premium_plan' })) {
-  // Lógica para Premium
+} else if (has({ plan: 'enterprise_plan' })) {
+  // Lógica para Enterprise
 }
 ```
 
@@ -240,8 +355,8 @@ if (has({ plan: 'starter_plan' })) {
   // Lógica para Starter Plan
 } else if (has({ plan: 'professional_plan' })) {
   // Lógica para Professional Plan
-} else if (has({ plan: 'premium_plan' })) {
-  // Lógica para Premium Plan
+} else if (has({ plan: 'enterprise_plan' })) {
+  // Lógica para Enterprise Plan
 }
 
 // Verificar funciones específicas
@@ -249,8 +364,8 @@ if (has({ feature: "advanced_reports" })) {
   // Mostrar reportes avanzados
 }
 
-if (has({ feature: "stripe_integration" })) {
-  // Habilitar integración con Stripe
+if (has({ feature: "google_calendar" })) {
+  // Habilitar integración con Google Calendar
 }
 ```
 
@@ -264,12 +379,12 @@ export const checkLimits = async () => {
   let sessionLimit = 0;
   
   if (has({ plan: 'starter_plan' })) {
-    patientLimit = 25;
+    patientLimit = 50;
     sessionLimit = -1; // Ilimitadas
   } else if (has({ plan: 'professional_plan' })) {
-    patientLimit = 150;
+    patientLimit = 200;
     sessionLimit = -1; // Ilimitadas
-  } else if (has({ plan: 'premium_plan' })) {
+  } else if (has({ plan: 'enterprise_plan' })) {
     patientLimit = -1; // Ilimitado
     sessionLimit = -1; // Ilimitadas
   }
@@ -280,30 +395,89 @@ export const checkLimits = async () => {
 // Verificar si tiene IA para resúmenes
 export const hasAISummaries = async () => {
   const { has } = await auth();
-  return has({ feature: "ai_session_summaries" });
+  return has({ plan: 'professional_plan' }) || has({ plan: 'enterprise_plan' });
 };
 
-// Verificar si tiene IA avanzada
-export const hasAdvancedAI = async () => {
+// Verificar si tiene reportes avanzados
+export const hasAdvancedReports = async () => {
   const { has } = await auth();
-  return has({ feature: "advanced_ai_analysis" });
+  return has({ plan: 'professional_plan' }) || has({ plan: 'enterprise_plan' });
+};
+
+// Verificar si tiene Google Calendar
+export const hasGoogleCalendar = async () => {
+  const { has } = await auth();
+  return has({ plan: 'professional_plan' }) || has({ plan: 'enterprise_plan' });
 };
 ```
 
 ---
 
-## 📊 **RESUMEN DE LÍMITES POR PLAN**
+## 💻 **CÓDIGO TYPESCRIPT PARA VERIFICACIÓN DE LÍMITES**
 
-| Plan | Pacientes | Sesiones/Mes | Almacenamiento | IA Resúmenes | IA Avanzada | Funciones | Precio |
-|------|-----------|--------------|----------------|--------------|-------------|-----------|--------|
-| **Starter** | 25 | Ilimitadas | 200MB | ❌ | ❌ | Básicas | €25/mes |
-| **Professional** ⭐ | 150 | Ilimitadas | 1GB | ✅ | ❌ | Avanzadas | €55/mes |
-| **Premium** 🚀 | Ilimitado | Ilimitadas | Ilimitado | ✅ | ✅ | Completas | €150/mes |
+```typescript
+interface PlanLimits {
+  patientLimit: number | 'unlimited';
+  storageLimitMB: number;
+  sessionLimit: 'unlimited';
+  aiFeatures: boolean;
+  advancedReports: boolean;
+  googleCalendar: boolean;
+  hipaaCompliance: boolean;
+}
 
-### **🎯 Diferencias Clave:**
-- **Starter**: Ideal para psicólogos nuevos con pocos pacientes
-- **Professional**: Para psicólogos establecidos con IA para resúmenes automáticos
-- **Premium**: Para clínicas grandes con IA avanzada para análisis de progreso
+const planLimits: Record<string, PlanLimits> = {
+  starter_plan: {
+    patientLimit: 50,
+    storageLimitMB: 1024,
+    sessionLimit: 'unlimited',
+    aiFeatures: false,
+    advancedReports: false,
+    googleCalendar: false,
+    hipaaCompliance: true
+  },
+  professional_plan: {
+    patientLimit: 200,
+    storageLimitMB: 5120,
+    sessionLimit: 'unlimited',
+    aiFeatures: true,
+    advancedReports: true,
+    googleCalendar: true,
+    hipaaCompliance: true
+  },
+  enterprise_plan: {
+    patientLimit: 'unlimited',
+    storageLimitMB: 51200,
+    sessionLimit: 'unlimited',
+    aiFeatures: true,
+    advancedReports: true,
+    googleCalendar: true,
+    hipaaCompliance: true
+  }
+};
+
+export function checkLimits(planKey: string, currentUsage: {
+  patients: number;
+  storageMB: number;
+  sessions: number;
+}): { canAdd: boolean; reason?: string } {
+  const limits = planLimits[planKey];
+  if (!limits) return { canAdd: false, reason: 'Plan no válido' };
+
+  // Verificar límite de pacientes
+  if (limits.patientLimit !== 'unlimited' && 
+      currentUsage.patients >= limits.patientLimit) {
+    return { canAdd: false, reason: 'Límite de pacientes alcanzado' };
+  }
+
+  // Verificar límite de almacenamiento
+  if (currentUsage.storageMB >= limits.storageLimitMB) {
+    return { canAdd: false, reason: 'Límite de almacenamiento alcanzado' };
+  }
+
+  return { canAdd: true };
+}
+```
 
 ---
 

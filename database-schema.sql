@@ -1,8 +1,7 @@
 -- Esquema de base de datos para PsyCare Pro
 -- Sistema de gestión clínica para psicólogos autónomos
 
--- Habilitar Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
+-- Habilitar Row Level Security (se configura automáticamente en Supabase)
 
 -- Tabla de psicólogos
 CREATE TABLE psychologists (

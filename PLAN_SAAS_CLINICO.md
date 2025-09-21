@@ -35,10 +35,10 @@
 - Campos adicionales: número de licencia, especialización
 - Verificación de identidad profesional
 
-#### 1.3 Configuración de planes de suscripción (OPTIMIZADOS)
-- **Starter (€25/mes)**: 25 pacientes, 200MB almacenamiento optimizado
-- **Professional (€55/mes)**: 150 pacientes, 1GB, IA resúmenes, reportes avanzados ⭐ **MÁS POPULAR**
-- **Premium (€150/mes)**: Ilimitado, almacenamiento ilimitado, IA avanzada, todas las funciones 🚀 **EMPRESA**
+#### 1.3 Configuración de planes de suscripción (COMPETITIVOS)
+- **Starter (€29/mes)**: 50 pacientes, 1GB, gestión avanzada clínicas/notas, HIPAA ⭐ **14 días gratis**
+- **Professional (€59/mes)**: 200 pacientes, 5GB, IA resúmenes, reportes avanzados, Google Calendar ⭐ **MÁS POPULAR**
+- **Enterprise (€149/mes)**: Ilimitado, 50GB, todas las funciones del Professional 🚀 **EMPRESA**
 
 ---
 

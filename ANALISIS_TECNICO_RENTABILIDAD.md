@@ -10,9 +10,9 @@
 
 | Plan | Precio/Mes | Pacientes | Sesiones | IA | Funciones |
 |------|------------|-----------|----------|----|-----------| 
-| **Starter** | €25 | 25 | Ilimitadas | ❌ | Básicas |
-| **Professional** | €45 | 100 | Ilimitadas | ✅ Resúmenes | Avanzadas |
-| **Premium** | €75 | Ilimitados | Ilimitadas | ✅ Avanzada | Todas |
+| **Starter** | €29 | 50 | Ilimitadas | ❌ | Gestión avanzada clínicas/notas, HIPAA |
+| **Professional** | €59 | 200 | Ilimitadas | ✅ Resúmenes | Reportes avanzados, Google Calendar |
+| **Enterprise** | €149 | Ilimitados | Ilimitadas | ✅ Resúmenes | Todas las funciones del Professional |
 
 ---
 
