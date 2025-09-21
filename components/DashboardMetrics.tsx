@@ -38,80 +38,84 @@ export default function DashboardMetrics() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {/* Pacientes Activos */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pacientes Activos</CardTitle>
-          <Users className="h-4 w-4 text-blue-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{metrics.activePatients}</div>
-          <div className="flex items-center gap-1 text-xs text-gray-600">
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Pacientes Activos</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.activePatients}</p>
+            </div>
+            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+              <Users className="h-5 w-5 text-blue-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-1 text-xs">
             {getGrowthIcon(metrics.weeklyGrowth)}
             <span className={getGrowthColor(metrics.weeklyGrowth)}>
               +{metrics.weeklyGrowth}%
             </span>
-            <span>vs semana pasada</span>
+            <span className="text-gray-500">vs semana pasada</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            {metrics.totalPatients} pacientes totales
-          </p>
         </CardContent>
       </Card>
 
       {/* Citas Hoy */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Citas Hoy</CardTitle>
-          <Calendar className="h-4 w-4 text-green-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{metrics.appointmentsToday}</div>
-          <div className="flex items-center gap-1 text-xs text-gray-600">
-            <Calendar className="h-3 w-3 text-gray-400" />
-            <span>{metrics.appointmentsThisWeek} esta semana</span>
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Citas Hoy</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.appointmentsToday}</p>
+            </div>
+            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-green-600" />
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Próxima: 10:00 - María García
-          </p>
+          <div className="mt-4 flex items-center gap-1 text-xs">
+            <Calendar className="h-3 w-3 text-gray-400" />
+            <span className="text-gray-500">{metrics.appointmentsThisWeek} esta semana</span>
+          </div>
         </CardContent>
       </Card>
 
       {/* Ingresos del Mes */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Ingresos del Mes</CardTitle>
-          <DollarSign className="h-4 w-4 text-yellow-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(metrics.monthlyRevenue)}</div>
-          <div className="flex items-center gap-1 text-xs text-gray-600">
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Ingresos del Mes</p>
+              <p className="text-2xl font-semibold text-gray-900">{formatCurrency(metrics.monthlyRevenue)}</p>
+            </div>
+            <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-yellow-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-1 text-xs">
             {getGrowthIcon(metrics.monthlyGrowth)}
             <span className={getGrowthColor(metrics.monthlyGrowth)}>
               +{metrics.monthlyGrowth}%
             </span>
-            <span>vs mes pasado</span>
+            <span className="text-gray-500">vs mes pasado</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Promedio: {formatCurrency(metrics.monthlyRevenue / 30)}/día
-          </p>
         </CardContent>
       </Card>
 
       {/* Notas Pendientes */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Notas Pendientes</CardTitle>
-          <FileText className="h-4 w-4 text-purple-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{metrics.pendingNotes}</div>
-          <div className="flex items-center gap-1 text-xs text-gray-600">
-            <FileText className="h-3 w-3 text-gray-400" />
-            <span>Requieren revisión</span>
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Notas Pendientes</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.pendingNotes}</p>
+            </div>
+            <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
+              <FileText className="h-5 w-5 text-purple-600" />
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Última actualización: hace 2 horas
-          </p>
+          <div className="mt-4 flex items-center gap-1 text-xs">
+            <FileText className="h-3 w-3 text-gray-400" />
+            <span className="text-gray-500">Requieren revisión</span>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -96,15 +96,12 @@ export default async function PacientesPage({
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="p-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Pacientes</h1>
-          <p className="text-gray-600 mt-2">
-            Administra la información de tus pacientes de forma segura y eficiente
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900">Pacientes</h1>
+        <p className="mt-1 text-sm text-gray-600">Administra la información de tus pacientes</p>
+      </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Paciente

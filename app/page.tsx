@@ -21,60 +21,20 @@ const Page = async () => {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard Clínico</h1>
-          <p className="mt-2 text-gray-600">Bienvenido a tu centro de gestión profesional</p>
-        </div>
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+        <p className="mt-1 text-sm text-gray-600">Resumen de tu actividad clínica</p>
+      </div>
 
         {/* Métricas principales */}
         <Suspense fallback={<DashboardMetricsSkeleton />}>
           <DashboardMetrics />
         </Suspense>
 
-        {/* Acciones rápidas */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5 text-blue-600" />
-                Acciones Rápidas
-              </CardTitle>
-              <CardDescription>
-                Accede rápidamente a las funciones más utilizadas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Link href="/pacientes">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Users className="w-4 h-4 mr-2" />
-                    Gestionar Pacientes
-                  </Button>
-                </Link>
-                <Link href="/citas">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Ver Calendario
-                  </Button>
-                </Link>
-                <Link href="/notas">
-                  <Button variant="outline" className="w-full justify-start">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Notas Clínicas
-                  </Button>
-                </Link>
-                <Link href="/facturacion">
-                  <Button variant="outline" className="w-full justify-start">
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    Facturación
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Contenido principal */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
 
           <Card>
             <CardHeader>
@@ -113,69 +73,57 @@ const Page = async () => {
 
         {/* Estadísticas adicionales */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                Resumen Semanal
-              </CardTitle>
-              <CardDescription>
-                Actividad de la última semana
-              </CardDescription>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium text-gray-900">Resumen Semanal</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
+            <CardContent className="pt-0">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-1">
                   <span className="text-sm text-gray-600">Sesiones realizadas</span>
-                  <Badge variant="secondary">12</Badge>
+                  <span className="text-sm font-medium text-gray-900">12</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center py-1">
                   <span className="text-sm text-gray-600">Nuevos pacientes</span>
-                  <Badge variant="secondary">3</Badge>
+                  <span className="text-sm font-medium text-gray-900">3</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center py-1">
                   <span className="text-sm text-gray-600">Notas completadas</span>
-                  <Badge variant="secondary">8</Badge>
+                  <span className="text-sm font-medium text-gray-900">8</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center py-1">
                   <span className="text-sm text-gray-600">Ingresos semanales</span>
-                  <Badge variant="default">€480</Badge>
+                  <span className="text-sm font-medium text-gray-900">€480</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-orange-600" />
-                Alertas y Recordatorios
-              </CardTitle>
-              <CardDescription>
-                Tareas pendientes y notificaciones importantes
-              </CardDescription>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium text-gray-900">Alertas</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-                  <Clock className="h-4 w-4 text-orange-600" />
+                <div className="flex items-center gap-3 py-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">3 notas pendientes</p>
-                    <p className="text-xs text-gray-600">Requieren revisión</p>
+                    <p className="text-sm font-medium text-gray-900">3 notas pendientes</p>
+                    <p className="text-xs text-gray-500">Requieren revisión</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                  <Calendar className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center gap-3 py-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Cita en 30 minutos</p>
-                    <p className="text-xs text-gray-600">María García - 10:00</p>
+                    <p className="text-sm font-medium text-gray-900">Cita en 30 minutos</p>
+                    <p className="text-xs text-gray-500">María García - 10:00</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                  <FileText className="h-4 w-4 text-green-600" />
+                <div className="flex items-center gap-3 py-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Backup completado</p>
-                    <p className="text-xs text-gray-600">Datos seguros</p>
+                    <p className="text-sm font-medium text-gray-900">Backup completado</p>
+                    <p className="text-xs text-gray-500">Datos seguros</p>
                   </div>
                 </div>
               </div>
@@ -183,7 +131,6 @@ const Page = async () => {
           </Card>
         </div>
       </div>
-    </main>
   )
 }
 

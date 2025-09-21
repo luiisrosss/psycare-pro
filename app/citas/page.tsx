@@ -40,15 +40,12 @@ export default function CitasPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-8">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Citas</h1>
-          <p className="text-gray-600 mt-2">
-            Organiza y gestiona todas tus citas de manera eficiente
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900">Citas</h1>
+        <p className="mt-1 text-sm text-gray-600">Organiza y gestiona todas tus citas</p>
+      </div>
         <Button 
           className="bg-blue-600 hover:bg-blue-700"
           onClick={handleNuevaCita}

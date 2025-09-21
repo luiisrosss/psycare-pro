@@ -61,15 +61,12 @@ export default function NotasPage() {
   ]
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-8">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Notas Clínicas</h1>
-          <p className="text-gray-600 mt-2">
-            Gestiona y organiza todas tus notas de sesiones clínicas
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900">Notas</h1>
+        <p className="mt-1 text-sm text-gray-600">Gestiona y organiza todas tus notas clínicas</p>
+      </div>
         <Button 
           className="bg-blue-600 hover:bg-blue-700"
           onClick={handleNuevaNota}
