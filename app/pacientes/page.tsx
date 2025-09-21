@@ -1,27 +1,13 @@
 import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import { 
-  Button, 
-  Input, 
-  Select, 
-  SelectItem,
-  Card,
-  CardBody,
-  CardHeader,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Chip,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Spinner
-} from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Plus, Search, Filter, MoreHorizontal, Eye, Edit, Trash2, Calendar, Phone, Mail } from 'lucide-react';
 
 export default async function PacientesPage({
@@ -75,16 +61,16 @@ export default async function PacientesPage({
     }
   ];
 
-  const getStatusChip = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Chip color="success" variant="flat">Activo</Chip>;
+        return <Badge className="bg-green-100 text-green-800">Activo</Badge>;
       case 'inactive':
-        return <Chip color="warning" variant="flat">Inactivo</Chip>;
+        return <Badge className="bg-yellow-100 text-yellow-800">Inactivo</Badge>;
       case 'discharged':
-        return <Chip color="default" variant="flat">Dado de alta</Chip>;
+        return <Badge className="bg-gray-100 text-gray-800">Dado de alta</Badge>;
       default:
-        return <Chip variant="flat">{status}</Chip>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
@@ -119,84 +105,84 @@ export default async function PacientesPage({
             Administra la información de tus pacientes de forma segura y eficiente
           </p>
         </div>
-        <Button 
-          color="primary" 
-          startContent={<Plus className="w-4 h-4" />}
-          className="bg-blue-600 text-white"
-        >
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
           Nuevo Paciente
         </Button>
       </div>
 
       {/* Filtros y búsqueda */}
       <Card className="mb-6">
-        <CardBody>
+        <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Búsqueda */}
             <div className="flex-1">
-              <Input
-                placeholder="Buscar por nombre, email o teléfono..."
-                startContent={<Search className="w-4 h-4 text-gray-400" />}
-                defaultValue={searchParams.search || ''}
-                className="w-full"
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar por nombre, email o teléfono..."
+                  className="pl-10"
+                  defaultValue={searchParams.search || ''}
+                />
+              </div>
             </div>
 
             {/* Filtro por estado */}
-            <Select 
-              placeholder="Estado del paciente"
-              defaultSelectedKeys={[searchParams.status || 'all']}
-              className="w-full sm:w-48"
-            >
-              <SelectItem key="all" value="all">Todos los estados</SelectItem>
-              <SelectItem key="active" value="active">Activo</SelectItem>
-              <SelectItem key="inactive" value="inactive">Inactivo</SelectItem>
-              <SelectItem key="discharged" value="discharged">Dado de alta</SelectItem>
+            <Select defaultValue={searchParams.status || 'all'}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Estado del paciente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="active">Activo</SelectItem>
+                <SelectItem value="inactive">Inactivo</SelectItem>
+                <SelectItem value="discharged">Dado de alta</SelectItem>
+              </SelectContent>
             </Select>
 
             {/* Ordenamiento */}
-            <Select 
-              placeholder="Ordenar por"
-              defaultSelectedKeys={[searchParams.sort || 'name']}
-              className="w-full sm:w-48"
-            >
-              <SelectItem key="name" value="name">Nombre</SelectItem>
-              <SelectItem key="created_at" value="created_at">Fecha de registro</SelectItem>
-              <SelectItem key="last_appointment" value="last_appointment">Última cita</SelectItem>
+            <Select defaultValue={searchParams.sort || 'name'}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Nombre</SelectItem>
+                <SelectItem value="created_at">Fecha de registro</SelectItem>
+                <SelectItem value="last_appointment">Última cita</SelectItem>
+              </SelectContent>
             </Select>
 
-            <Button 
-              variant="bordered" 
-              startContent={<Filter className="w-4 h-4" />}
-              className="w-full sm:w-auto"
-            >
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Filter className="w-4 h-4 mr-2" />
               Aplicar Filtros
             </Button>
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
 
       {/* Lista de pacientes */}
       <Card>
         <CardHeader>
-          <h2 className="text-xl font-semibold">Lista de Pacientes</h2>
+          <CardTitle>Lista de Pacientes</CardTitle>
         </CardHeader>
-        <CardBody>
-          <Table aria-label="Lista de pacientes">
+        <CardContent>
+          <Table>
             <TableHeader>
-              <TableColumn>PACIENTE</TableColumn>
-              <TableColumn>CONTACTO</TableColumn>
-              <TableColumn>EDAD</TableColumn>
-              <TableColumn>ESTADO</TableColumn>
-              <TableColumn>ÚLTIMA CITA</TableColumn>
-              <TableColumn>ACCIONES</TableColumn>
+              <TableRow>
+                <TableHead>Paciente</TableHead>
+                <TableHead>Contacto</TableHead>
+                <TableHead>Edad</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Última cita</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {mockPatients.map((patient) => (
                 <TableRow key={patient.id}>
                   <TableCell>
                     <div>
-                      <div className="font-semibold">
+                      <div className="font-medium">
                         {patient.first_name} {patient.last_name}
                       </div>
                       <div className="text-sm text-gray-500">
@@ -208,13 +194,13 @@ export default async function PacientesPage({
                     <div className="space-y-1">
                       {patient.email && (
                         <div className="flex items-center text-sm">
-                          <Mail className="w-3 h-3 mr-2 text-gray-400" />
+                          <Mail className="w-3 h-3 mr-1 text-gray-400" />
                           {patient.email}
                         </div>
                       )}
                       {patient.phone && (
                         <div className="flex items-center text-sm">
-                          <Phone className="w-3 h-3 mr-2 text-gray-400" />
+                          <Phone className="w-3 h-3 mr-1 text-gray-400" />
                           {patient.phone}
                         </div>
                       )}
@@ -224,12 +210,12 @@ export default async function PacientesPage({
                     {patient.date_of_birth ? calculateAge(patient.date_of_birth) : '-'}
                   </TableCell>
                   <TableCell>
-                    {getStatusChip(patient.status)}
+                    {getStatusBadge(patient.status)}
                   </TableCell>
                   <TableCell>
                     {patient.last_appointment ? (
                       <div className="flex items-center text-sm">
-                        <Calendar className="w-3 h-3 mr-2 text-gray-400" />
+                        <Calendar className="w-3 h-3 mr-1 text-gray-400" />
                         {formatDate(patient.last_appointment)}
                       </div>
                     ) : (
@@ -237,45 +223,33 @@ export default async function PacientesPage({
                     )}
                   </TableCell>
                   <TableCell>
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <Button 
-                          isIconOnly 
-                          variant="light" 
-                          size="sm"
-                        >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
-                      </DropdownTrigger>
-                      <DropdownMenu aria-label="Acciones del paciente">
-                        <DropdownItem 
-                          key="view" 
-                          startContent={<Eye className="w-4 h-4" />}
-                        >
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Eye className="w-4 h-4 mr-2" />
                           Ver detalles
-                        </DropdownItem>
-                        <DropdownItem 
-                          key="edit" 
-                          startContent={<Edit className="w-4 h-4" />}
-                        >
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Edit className="w-4 h-4 mr-2" />
                           Editar
-                        </DropdownItem>
-                        <DropdownItem 
-                          key="delete" 
-                          className="text-danger" 
-                          color="danger"
-                          startContent={<Trash2 className="w-4 h-4" />}
-                        >
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600">
+                          <Trash2 className="w-4 h-4 mr-2" />
                           Eliminar
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </CardBody>
+        </CardContent>
       </Card>
     </div>
   );
