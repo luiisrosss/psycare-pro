@@ -40,11 +40,41 @@ export async function createSubscriptionCheckout({
       throw new Error('Email del usuario no encontrado')
     }
 
-    const checkoutSession = await createCheckoutSession({
-      planId,
-      interval,
-      userId,
-      userEmail,
+    // Crear cliente de Stripe
+    const stripe = await import('stripe')
+    const stripeInstance = new stripe.default(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2024-06-20',
+    })
+
+    // Crear sesión de checkout
+    const checkoutSession = await stripeInstance.checkout.sessions.create({
+      customer_email: userEmail,
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: `Plan ${planId}`,
+              description: `Suscripción ${interval === 'month' ? 'mensual' : 'anual'}`,
+            },
+            unit_amount: planId === 'starter' ? (interval === 'month' ? 2900 : 26000) : 
+                         planId === 'professional' ? (interval === 'month' ? 5900 : 53000) : 
+                         (interval === 'month' ? 14900 : 134000),
+            recurring: {
+              interval: interval,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription?canceled=true`,
+      metadata: {
+        userId,
+        planId,
+        interval,
+      },
     })
 
     return { url: checkoutSession.url }
@@ -77,7 +107,16 @@ export async function createSubscriptionPortal() {
       throw new Error('No se encontró suscripción activa')
     }
 
-    const portalSession = await createCustomerPortalSession(subscription.stripe_customer_id)
+    // Crear cliente de Stripe
+    const stripe = await import('stripe')
+    const stripeInstance = new stripe.default(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2024-06-20',
+    })
+
+    const portalSession = await stripeInstance.billingPortal.sessions.create({
+      customer: subscription.stripe_customer_id,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+    })
     
     return { url: portalSession.url }
   } catch (error) {

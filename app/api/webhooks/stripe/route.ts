@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
           .from('subscriptions')
           .upsert({
             user_id: userId,
-            plan_id: subscription.items.data[0].price.lookup_key as string,
+            plan_id: subscription.metadata?.planId || 'starter',
             status: subscription.status,
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
