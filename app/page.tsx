@@ -1,17 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Users, Calendar, DollarSign, FileText, Plus, Clock, TrendingUp, AlertCircle } from "lucide-react";
-import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardMetrics from "@/components/DashboardMetrics";
 import DashboardMetricsSkeleton from "@/components/DashboardMetricsSkeleton";
 import UpcomingAppointments from "@/components/UpcomingAppointments";
 import UpcomingAppointmentsSkeleton from "@/components/UpcomingAppointmentsSkeleton";
-import RecentNotes from "@/components/RecentNotes";
-import RecentNotesSkeleton from "@/components/RecentNotesSkeleton";
 
 const Page = async () => {
   const { userId } = await auth();
