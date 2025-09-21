@@ -127,7 +127,7 @@ export default function Sidebar() {
 
         {/* Settings */}
         <div className="mt-auto pt-6">
-          <Link href="/settings">
+          <Link href="/configuracion">
             <Button
               variant="ghost"
               size="sm"
