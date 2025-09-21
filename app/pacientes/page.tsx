@@ -102,11 +102,6 @@ export default async function PacientesPage({
         <h1 className="text-2xl font-semibold text-gray-900">Pacientes</h1>
         <p className="mt-1 text-sm text-gray-600">Administra la información de tus pacientes</p>
       </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Paciente
-        </Button>
-      </div>
 
       {/* Filtros y búsqueda */}
       <Card className="mb-6">

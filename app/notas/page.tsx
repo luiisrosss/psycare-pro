@@ -67,14 +67,6 @@ export default function NotasPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Notas</h1>
         <p className="mt-1 text-sm text-gray-600">Gestiona y organiza todas tus notas clínicas</p>
       </div>
-        <Button 
-          className="bg-blue-600 hover:bg-blue-700"
-          onClick={handleNuevaNota}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva Nota
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

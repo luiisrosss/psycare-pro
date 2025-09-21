@@ -46,14 +46,6 @@ export default function CitasPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Citas</h1>
         <p className="mt-1 text-sm text-gray-600">Organiza y gestiona todas tus citas</p>
       </div>
-        <Button 
-          className="bg-blue-600 hover:bg-blue-700"
-          onClick={handleNuevaCita}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva Cita
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
