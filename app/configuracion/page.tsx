@@ -6,19 +6,16 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Save, User, Mail, Phone, MapPin, CreditCard, Shield, Bell, Download, Trash2, AlertTriangle } from 'lucide-react'
+import { Save, User, Mail, Phone, MapPin, CreditCard, Shield, Download, Trash2, AlertTriangle } from 'lucide-react'
 import { 
   getPsychologistProfile, 
   updatePsychologistProfile,
   getBillingSettings,
   updateBillingSettings,
-  getNotificationSettings,
-  updateNotificationSettings,
   exportUserData,
   deleteUserAccount,
   type PsychologistProfile,
-  type BillingSettings,
-  type NotificationSettings
+  type BillingSettings
 } from '@/lib/actions/profile.actions'
 import { useUser } from '@clerk/nextjs'
 
@@ -48,13 +45,6 @@ export default function ConfiguracionPage() {
     tax_rate: 21
   })
 
-  const [notificacionesData, setNotificacionesData] = useState<Partial<NotificationSettings>>({
-    email_notifications: true,
-    appointment_reminders: true,
-    payment_reminders: true,
-    weekly_reports: true,
-    marketing_emails: false
-  })
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -83,11 +73,6 @@ export default function ConfiguracionPage() {
         setFacturacionData(billing)
       }
 
-      // Cargar configuración de notificaciones
-      const notifications = await getNotificationSettings()
-      if (notifications) {
-        setNotificacionesData(notifications)
-      }
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
@@ -129,22 +114,6 @@ export default function ConfiguracionPage() {
     }
   }
 
-  const handleSaveNotificaciones = async () => {
-    try {
-      setSaving(true)
-      const result = await updateNotificationSettings(notificacionesData)
-      if (result.success) {
-        alert('Configuración de notificaciones actualizada')
-      } else {
-        alert(`Error: ${result.error}`)
-      }
-    } catch (error) {
-      console.error('Error saving notifications:', error)
-      alert('Error al guardar la configuración de notificaciones')
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const handleExportData = async () => {
     try {
@@ -205,7 +174,7 @@ export default function ConfiguracionPage() {
       </div>
 
       <Tabs defaultValue="perfil" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="perfil" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Perfil
@@ -213,10 +182,6 @@ export default function ConfiguracionPage() {
           <TabsTrigger value="facturacion" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
             Facturación
-          </TabsTrigger>
-          <TabsTrigger value="notificaciones" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            Notificaciones
           </TabsTrigger>
           <TabsTrigger value="cuenta" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -405,96 +370,6 @@ export default function ConfiguracionPage() {
           </Card>
         </TabsContent>
 
-        {/* Configuración de Notificaciones */}
-        <TabsContent value="notificaciones">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-purple-600" />
-                Preferencias de Notificaciones
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Notificaciones por Email</h3>
-                    <p className="text-sm text-gray-600">Recibir notificaciones importantes por correo electrónico</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={notificacionesData.email_notifications}
-                    onChange={(e) => setNotificacionesData({...notificacionesData, email_notifications: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 rounded"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Recordatorios de Citas</h3>
-                    <p className="text-sm text-gray-600">Notificaciones automáticas antes de las citas programadas</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={notificacionesData.appointment_reminders}
-                    onChange={(e) => setNotificacionesData({...notificacionesData, appointment_reminders: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 rounded"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Recordatorios de Pago</h3>
-                    <p className="text-sm text-gray-600">Alertas cuando las facturas están próximas a vencer</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={notificacionesData.payment_reminders}
-                    onChange={(e) => setNotificacionesData({...notificacionesData, payment_reminders: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 rounded"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Reportes Semanales</h3>
-                    <p className="text-sm text-gray-600">Resumen semanal de actividad y métricas</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={notificacionesData.weekly_reports}
-                    onChange={(e) => setNotificacionesData({...notificacionesData, weekly_reports: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 rounded"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Emails de Marketing</h3>
-                    <p className="text-sm text-gray-600">Recibir información sobre nuevas funciones y promociones</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={notificacionesData.marketing_emails}
-                    onChange={(e) => setNotificacionesData({...notificacionesData, marketing_emails: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 rounded"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button 
-                  onClick={handleSaveNotificaciones} 
-                  disabled={saving || loading}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? 'Guardando...' : 'Guardar Notificaciones'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Gestión de Cuenta */}
         <TabsContent value="cuenta">

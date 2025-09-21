@@ -32,17 +32,6 @@ export interface BillingSettings {
   updated_at?: string
 }
 
-export interface NotificationSettings {
-  id?: string
-  psychologist_id: string
-  email_notifications: boolean
-  appointment_reminders: boolean
-  payment_reminders: boolean
-  weekly_reports: boolean
-  marketing_emails: boolean
-  created_at?: string
-  updated_at?: string
-}
 
 // Obtener perfil del psicólogo
 export async function getPsychologistProfile(): Promise<PsychologistProfile | null> {
@@ -192,95 +181,6 @@ export async function updateBillingSettings(billingData: Partial<BillingSettings
   }
 }
 
-// Obtener configuración de notificaciones
-export async function getNotificationSettings(): Promise<NotificationSettings | null> {
-  try {
-    const { userId } = await auth()
-    
-    if (!userId) {
-      return null
-    }
-
-    const supabase = createSupabaseClient()
-    
-    // Primero obtener el ID del psicólogo
-    const { data: psychologist } = await supabase
-      .from('psychologists')
-      .select('id')
-      .eq('user_id', userId)
-      .single()
-
-    if (!psychologist) {
-      return null
-    }
-
-    const { data: notifications, error } = await supabase
-      .from('notification_settings')
-      .select('*')
-      .eq('psychologist_id', psychologist.id)
-      .single()
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching notification settings:', error)
-      return null
-    }
-
-    return notifications || {
-      psychologist_id: psychologist.id,
-      email_notifications: true,
-      appointment_reminders: true,
-      payment_reminders: true,
-      weekly_reports: true,
-      marketing_emails: false
-    }
-  } catch (error) {
-    console.error('Error getting notification settings:', error)
-    return null
-  }
-}
-
-// Actualizar configuración de notificaciones
-export async function updateNotificationSettings(notificationData: Partial<NotificationSettings>): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { userId } = await auth()
-    
-    if (!userId) {
-      return { success: false, error: 'Usuario no autenticado' }
-    }
-
-    const supabase = createSupabaseClient()
-    
-    // Primero obtener el ID del psicólogo
-    const { data: psychologist } = await supabase
-      .from('psychologists')
-      .select('id')
-      .eq('user_id', userId)
-      .single()
-
-    if (!psychologist) {
-      return { success: false, error: 'Perfil de psicólogo no encontrado' }
-    }
-
-    const { error } = await supabase
-      .from('notification_settings')
-      .upsert({
-        psychologist_id: psychologist.id,
-        ...notificationData,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'psychologist_id' })
-
-    if (error) {
-      console.error('Error updating notification settings:', error)
-      return { success: false, error: 'Error al actualizar la configuración de notificaciones' }
-    }
-
-    revalidatePath('/configuracion')
-    return { success: true }
-  } catch (error) {
-    console.error('Error updating notification settings:', error)
-    return { success: false, error: 'Error interno del servidor' }
-  }
-}
 
 // Eliminar cuenta del usuario
 export async function deleteUserAccount(): Promise<{ success: boolean; error?: string }> {
