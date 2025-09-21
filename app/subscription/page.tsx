@@ -1,18 +1,25 @@
+'use client'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Star, Zap } from "lucide-react";
 import { SUBSCRIPTION_PLANS } from "@/lib/stripe";
 import { createSubscriptionCheckout } from "@/lib/actions/subscription.actions";
+import { useState } from "react";
 
 const Subscription = () => {
+    const [loading, setLoading] = useState(false);
+
     const handleSubscribe = async (planId: string, interval: 'month' | 'year') => {
+        setLoading(true);
         try {
             const { url } = await createSubscriptionCheckout({ planId, interval });
             if (url) {
                 window.location.href = url;
             }
         } catch (error) {
-            console.error('Error creating subscription:', error);
+            console.error('Error creating subscription checkout:', error);
+            setLoading(false);
         }
     };
 
@@ -79,16 +86,18 @@ const Subscription = () => {
                                     <Button 
                                         className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                                         onClick={() => handleSubscribe(plan.id, 'month')}
+                                        disabled={loading}
                                     >
                                         <Zap className="h-4 w-4 mr-2" />
-                                        Comenzar Mensual
+                                        {loading ? 'Cargando...' : 'Comenzar Mensual'}
                                     </Button>
                                     <Button 
                                         variant="outline" 
                                         className="w-full"
                                         onClick={() => handleSubscribe(plan.id, 'year')}
+                                        disabled={loading}
                                     >
-                                        Comenzar Anual (10% descuento)
+                                        {loading ? 'Cargando...' : 'Comenzar Anual (10% descuento)'}
                                     </Button>
                                 </div>
                             </CardContent>
