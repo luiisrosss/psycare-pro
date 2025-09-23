@@ -5,14 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import ListaNotas from '@/components/ListaNotas'
-import ListaNotasSkeleton from '@/components/ListaNotasSkeleton'
-import NuevaNotaForm from '@/components/NuevaNotaForm'
+import ListaSesiones from '@/components/ListaSesiones'
+import ListaSesionesSkeleton from '@/components/ListaSesionesSkeleton'
+import NuevaSesionForm from '@/components/NuevaSesionForm'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { obtenerEstadisticasNotas } from '@/lib/actions/notes.actions'
+import { obtenerEstadisticasSesiones } from '@/lib/actions/notes.actions'
 
-export default async function NotasPage({
+export default async function SesionesPage({
   searchParams,
 }: {
   searchParams: Promise<{
@@ -34,7 +34,7 @@ export default async function NotasPage({
   // Obtener estadísticas de notas
   let estadisticas;
   try {
-    estadisticas = await obtenerEstadisticasNotas();
+    estadisticas = await obtenerEstadisticasSesiones();
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);
     estadisticas = {
@@ -65,21 +65,21 @@ export default async function NotasPage({
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Notas</h1>
-        <p className="mt-1 text-sm text-gray-600">Gestiona y organiza todas tus notas clínicas</p>
+        <h1 className="text-2xl font-semibold text-gray-900">Sesiones</h1>
+        <p className="mt-1 text-sm text-gray-600">Gestiona y organiza todas tus sesiones clínicas</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Notas</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Sesiones</CardTitle>
             <FileText className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{estadisticas.totalNotas}</div>
+            <div className="text-2xl font-bold">{estadisticas.totalSesiones || 0}</div>
             <p className="text-xs text-gray-600">
-              +{estadisticas.notasEstaSemana} esta semana
+              +{estadisticas.sesionesEstaSemana || 0} esta semana
             </p>
           </CardContent>
         </Card>
@@ -103,9 +103,9 @@ export default async function NotasPage({
             <Calendar className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{estadisticas.notasEstaSemana}</div>
+            <div className="text-2xl font-bold">{estadisticas.sesionesEstaSemana || 0}</div>
             <p className="text-xs text-gray-600">
-              Notas creadas esta semana
+              Sesiones realizadas esta semana
             </p>
           </CardContent>
         </Card>

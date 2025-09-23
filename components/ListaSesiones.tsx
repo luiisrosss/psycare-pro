@@ -4,14 +4,14 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { obtenerNotas, eliminarNota } from '@/lib/actions/notes.actions'
+import { obtenerSesiones, eliminarSesion } from '@/lib/actions/notes.actions'
 
-interface NotaClinica {
+interface SesionClinica {
   id: string
   psychologist_id: string
   patient_id: string
   appointment_id?: string
-  note_type: 'session' | 'assessment' | 'treatment_plan' | 'progress' | 'other'
+  session_type: 'individual' | 'couple' | 'family' | 'group'
   title: string
   content: string
   ai_summary?: string

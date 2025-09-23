@@ -35,9 +35,9 @@ const navigation = [
     icon: Calendar,
     current: false
   },
-  { 
-    name: 'Notas', 
-    href: '/notas', 
+  {
+    name: 'Sesiones',
+    href: '/sesiones',
     icon: FileText,
     current: false
   },
@@ -47,18 +47,12 @@ const navigation = [
     icon: CreditCard,
     current: false
   },
-  { 
-    name: 'Recordatorios', 
-    href: '/recordatorios', 
-    icon: Bell,
-    current: false
-  },
 ]
 
 const quickActions = [
   { name: 'Nuevo Paciente', href: '/pacientes', icon: Users },
   { name: 'Nueva Cita', href: '/citas', icon: Calendar },
-  { name: 'Nueva Nota', href: '/notas', icon: FileText },
+  { name: 'Nueva Sesión', href: '/sesiones?showForm=true', icon: FileText },
 ]
 
 export default function Sidebar() {
