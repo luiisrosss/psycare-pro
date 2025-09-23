@@ -9,6 +9,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Production start**: `npm start`
 - **Lint**: `npm run lint`
 
+## Project Context
+
+**CRITICAL**: Always check `contexto.md` for the current real state of the application as seen by the user. This file is updated after every significant change and contains:
+- Current functionality status
+- Known bugs and issues
+- User experience feedback
+- Priority problems to fix
+
+This context is essential for understanding what actually works vs what should work.
+
 ## Tech Stack
 
 This is a Next.js 15 application using:

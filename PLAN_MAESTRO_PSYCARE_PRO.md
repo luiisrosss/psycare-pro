@@ -30,11 +30,23 @@
 5. **CONTINÚA** → Solo avanzar si el paso anterior está ✅
 
 ### **LOG DE PASOS COMPLETADOS**
-| Paso | Descripción | Estado | Fecha | Verificado |
-|------|-------------|---------|--------|------------|
-| PRE-1 | Convertir a MVP (Sesiones) | ✅ | 2025-09-23 | ✅ |
-| PRE-2 | Fix errores sintaxis | ✅ | 2025-09-23 | ✅ |
-| PRE-3 | Servidor dev funcionando | ✅ | 2025-09-23 | ✅ |
+| Paso | Descripción | Estado | Fecha | Verificado | Resultado |
+|------|-------------|---------|--------|------------|-----------|
+| PRE-1 | Convertir a MVP (Sesiones) | ✅ | 2025-09-23 | ✅ | App convertida correctamente |
+| PRE-2 | Fix errores sintaxis | ✅ | 2025-09-23 | ✅ | Código sin errores de compilación |
+| PRE-3 | Servidor dev funcionando | ✅ | 2025-09-23 | ✅ | localhost:3001 operativo |
+| **1.1** | **Base de Datos Production-Ready** | ✅ | **2025-09-23** | **✅** | **11 tablas creadas, 3 planes OK** |
+
+### **PROBLEMAS CRÍTICOS DETECTADOS EN TESTING**
+📋 **Ver `contexto.md` para detalles completos**
+
+**🚨 Prioridad Alta - Requiere fix inmediato:**
+1. **Dashboard métricas vacías**: Se cargan inicialmente pero fallan después
+2. **Sesiones página rota**: Error crítico al acceder
+3. **Facturación página rota**: Error crítico al acceder
+4. **Error en Pacientes**: Muestra error en vez de mensaje apropiado
+
+**📝 Próximo paso crítico**: Fix de conexiones frontend-backend antes de continuar
 
 ### **Decisiones Técnicas Tomadas**
 - ✅ Arquitectura confirmada: Next.js (backend) + Supabase (BD) + Clerk (auth) + Stripe (pagos)
