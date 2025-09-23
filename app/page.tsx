@@ -81,7 +81,6 @@ const Page = async () => {
             </CardContent>
           </Card>
         </div>
-      </div>
     </div>
   )
 }
