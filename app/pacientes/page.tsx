@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Plus, Search, Filter, MoreHorizontal, Eye, Edit, Trash2, Calendar, Phone, Mail } from 'lucide-react';
+import { obtenerPacientes } from '@/lib/actions/patient.actions';
 
 export default async function PacientesPage({
   searchParams,
@@ -23,45 +24,19 @@ export default async function PacientesPage({
 
   const params = await searchParams;
 
-  // Datos de ejemplo
-  const mockPatients = [
-    {
-      id: '1',
-      first_name: 'María',
-      last_name: 'García López',
-      email: 'maria.garcia@email.com',
-      phone: '+34 612 345 678',
-      date_of_birth: '1985-03-15',
-      gender: 'female',
-      status: 'active',
-      created_at: '2024-01-15T10:30:00Z',
-      last_appointment: '2024-01-20T16:00:00Z'
-    },
-    {
-      id: '2',
-      first_name: 'Carlos',
-      last_name: 'Rodríguez Martín',
-      email: 'carlos.rodriguez@email.com',
-      phone: '+34 623 456 789',
-      date_of_birth: '1978-07-22',
-      gender: 'male',
-      status: 'active',
-      created_at: '2024-01-10T14:20:00Z',
-      last_appointment: '2024-01-18T11:30:00Z'
-    },
-    {
-      id: '3',
-      first_name: 'Ana',
-      last_name: 'Fernández Ruiz',
-      email: 'ana.fernandez@email.com',
-      phone: '+34 634 567 890',
-      date_of_birth: '1992-11-08',
-      gender: 'female',
-      status: 'inactive',
-      created_at: '2024-01-05T09:15:00Z',
-      last_appointment: '2024-01-12T15:45:00Z'
-    }
-  ];
+  // Obtener pacientes reales de la base de datos
+  let patients = [];
+  let error = null;
+
+  try {
+    patients = await getAllPatients({
+      search: params.search,
+      status: params.status as any,
+    });
+  } catch (e) {
+    console.error('Error obteniendo pacientes:', e);
+    error = 'Error al cargar pacientes';
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -172,7 +147,7 @@ export default async function PacientesPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockPatients.map((patient) => (
+              {patients.length > 0 ? patients.map((patient) => (
                 <TableRow key={patient.id}>
                   <TableCell>
                     <div>
@@ -240,7 +215,17 @@ export default async function PacientesPage({
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    {error ? (
+                      <div className="text-red-500">{error}</div>
+                    ) : (
+                      <div className="text-gray-500">No hay pacientes registrados</div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
