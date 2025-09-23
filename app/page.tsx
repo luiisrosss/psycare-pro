@@ -82,6 +82,7 @@ const Page = async () => {
           </Card>
         </div>
       </div>
+    </div>
   )
 }
 

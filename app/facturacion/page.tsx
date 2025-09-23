@@ -15,19 +15,21 @@ import { obtenerEstadisticasFacturacion } from '@/lib/actions/invoice.actions'
 export default async function FacturacionPage({
   searchParams,
 }: {
-  searchParams: { 
-    search?: string; 
-    patient?: string; 
-    status?: string; 
+  searchParams: Promise<{
+    search?: string;
+    patient?: string;
+    status?: string;
     date?: string;
     showForm?: string;
-  };
+  }>;
 }) {
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const params = await searchParams;
 
   // Obtener estadísticas de facturación
   let estadisticas;
@@ -44,7 +46,7 @@ export default async function FacturacionPage({
     };
   }
 
-  const mostrarFormulario = searchParams.showForm === 'true';
+  const mostrarFormulario = params.showForm === 'true';
 
   const pacientesEjemplo = [
     { id: '1', nombre: 'María García' },
@@ -149,13 +151,13 @@ export default async function FacturacionPage({
               <label className="text-sm font-medium">Buscar</label>
               <Input
                 placeholder="Buscar por número, paciente..."
-                defaultValue={searchParams.search || ''}
+                defaultValue={params.search || ''}
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Paciente</label>
-              <Select defaultValue={searchParams.patient || ''}>
+              <Select defaultValue={params.patient || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los pacientes" />
                 </SelectTrigger>
@@ -172,7 +174,7 @@ export default async function FacturacionPage({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Estado</label>
-              <Select defaultValue={searchParams.status || ''}>
+              <Select defaultValue={params.status || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
@@ -191,7 +193,7 @@ export default async function FacturacionPage({
               <label className="text-sm font-medium">Fecha</label>
               <Input
                 type="date"
-                defaultValue={searchParams.date || ''}
+                defaultValue={params.date || ''}
               />
             </div>
           </div>
@@ -218,11 +220,11 @@ export default async function FacturacionPage({
         </CardHeader>
         <CardContent>
           <Suspense fallback={<ListaFacturasSkeleton />}>
-            <ListaFacturas 
-              busqueda={searchParams.search || ''}
-              filtroPaciente={searchParams.patient || ''}
-              filtroEstado={searchParams.status || ''}
-              filtroFecha={searchParams.date || ''}
+            <ListaFacturas
+              busqueda={params.search || ''}
+              filtroPaciente={params.patient || ''}
+              filtroEstado={params.status || ''}
+              filtroFecha={params.date || ''}
             />
           </Suspense>
         </CardContent>

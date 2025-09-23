@@ -8,7 +8,7 @@ export function getStripe(): Stripe {
       throw new Error('STRIPE_SECRET_KEY is not configured');
     }
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-06-20',
+      apiVersion: '2025-08-27.basil',
     });
   }
   return stripeInstance;
@@ -127,6 +127,9 @@ export async function createStripeProducts() {
     
     for (const plan of SUBSCRIPTION_PLANS) {
       // Crear producto
+      if (!stripe) {
+        throw new Error('Stripe not initialized');
+      }
       const product = await stripe.products.create({
         name: plan.name,
         description: plan.description,
@@ -137,6 +140,9 @@ export async function createStripeProducts() {
       });
 
       // Crear precio mensual
+      if (!stripe) {
+        throw new Error('Stripe not initialized');
+      }
       const monthlyPrice = await stripe.prices.create({
         product: product.id,
         unit_amount: plan.price.monthly * 100, // Convertir a centavos
@@ -151,6 +157,9 @@ export async function createStripeProducts() {
       });
 
       // Crear precio anual
+      if (!stripe) {
+        throw new Error('Stripe not initialized');
+      }
       const annualPrice = await stripe.prices.create({
         product: product.id,
         unit_amount: plan.price.annual * 100, // Convertir a centavos
@@ -178,4 +187,70 @@ export async function createStripeProducts() {
   }
 }
 
-// Funciones de Stripe movidas a subscription.actions.ts para evitar duplicación
+// Crear sesión de checkout para suscripción
+export async function createCheckoutSession({
+  planId,
+  interval,
+  userEmail,
+  userId,
+}: {
+  planId: string;
+  interval: 'month' | 'year';
+  userEmail: string;
+  userId: string;
+}) {
+  if (!stripe) {
+    throw new Error('Stripe not initialized');
+  }
+
+  const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
+  if (!plan) {
+    throw new Error('Plan not found');
+  }
+
+  const amount = interval === 'month' ? plan.price.monthly : plan.price.annual;
+
+  const checkoutSession = await stripe.checkout.sessions.create({
+    customer_email: userEmail,
+    line_items: [
+      {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: plan.name,
+            description: `Suscripción ${interval === 'month' ? 'mensual' : 'anual'}`,
+          },
+          unit_amount: amount * 100, // Convertir a centavos
+          recurring: {
+            interval: interval,
+          },
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'subscription',
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription?canceled=true`,
+    metadata: {
+      userId,
+      planId,
+      interval,
+    },
+  });
+
+  return { url: checkoutSession.url };
+}
+
+// Crear sesión del portal del cliente
+export async function createCustomerPortalSession(customerId: string) {
+  if (!stripe) {
+    throw new Error('Stripe not initialized');
+  }
+
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+  });
+
+  return { url: portalSession.url };
+}

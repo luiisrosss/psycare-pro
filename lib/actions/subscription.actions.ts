@@ -2,7 +2,7 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { createSupabaseClient } from '@/lib/supabase'
-import { createCheckoutSession, createCustomerPortalSession, stripe } from '@/lib/stripe'
+import { createCheckoutSession, createCustomerPortalSession } from '@/lib/stripe'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -40,44 +40,15 @@ export async function createSubscriptionCheckout({
       throw new Error('Email del usuario no encontrado')
     }
 
-    // Crear cliente de Stripe
-    const stripe = await import('stripe')
-    const stripeInstance = new stripe.default(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-06-20',
+    // Crear sesión de checkout usando la función de @/lib/stripe
+    const checkoutSession = await createCheckoutSession({
+      planId,
+      interval,
+      userEmail,
+      userId,
     })
 
-    // Crear sesión de checkout
-    const checkoutSession = await stripeInstance.checkout.sessions.create({
-      customer_email: userEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: `Plan ${planId}`,
-              description: `Suscripción ${interval === 'month' ? 'mensual' : 'anual'}`,
-            },
-            unit_amount: planId === 'starter' ? (interval === 'month' ? 2900 : 26000) : 
-                         planId === 'professional' ? (interval === 'month' ? 5900 : 53000) : 
-                         (interval === 'month' ? 14900 : 134000),
-            recurring: {
-              interval: interval,
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription?canceled=true`,
-      metadata: {
-        userId,
-        planId,
-        interval,
-      },
-    })
-
-    return { url: checkoutSession.url }
+    return checkoutSession
   } catch (error) {
     console.error('Error creating subscription checkout:', error)
     throw error
@@ -107,18 +78,10 @@ export async function createSubscriptionPortal() {
       throw new Error('No se encontró suscripción activa')
     }
 
-    // Crear cliente de Stripe
-    const stripe = await import('stripe')
-    const stripeInstance = new stripe.default(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-06-20',
-    })
+    // Crear sesión del portal usando la función de @/lib/stripe
+    const portalSession = await createCustomerPortalSession(subscription.stripe_customer_id)
 
-    const portalSession = await stripeInstance.billingPortal.sessions.create({
-      customer: subscription.stripe_customer_id,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-    })
-    
-    return { url: portalSession.url }
+    return portalSession
   } catch (error) {
     console.error('Error creating subscription portal:', error)
     throw error

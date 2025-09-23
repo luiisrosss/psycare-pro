@@ -13,13 +13,15 @@ import { Plus, Search, Filter, MoreHorizontal, Eye, Edit, Trash2, Calendar, Phon
 export default async function PacientesPage({
   searchParams,
 }: {
-  searchParams: { search?: string; status?: string; sort?: string };
+  searchParams: Promise<{ search?: string; status?: string; sort?: string }>;
 }) {
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const params = await searchParams;
 
   // Datos de ejemplo
   const mockPatients = [
@@ -114,13 +116,13 @@ export default async function PacientesPage({
                 <Input
                   placeholder="Buscar por nombre, email o teléfono..."
                   className="pl-10"
-                  defaultValue={searchParams.search || ''}
+                  defaultValue={params.search || ''}
                 />
               </div>
             </div>
 
             {/* Filtro por estado */}
-            <Select defaultValue={searchParams.status || 'all'}>
+            <Select defaultValue={params.status || 'all'}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Estado del paciente" />
               </SelectTrigger>
@@ -133,7 +135,7 @@ export default async function PacientesPage({
             </Select>
 
             {/* Ordenamiento */}
-            <Select defaultValue={searchParams.sort || 'name'}>
+            <Select defaultValue={params.sort || 'name'}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>

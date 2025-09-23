@@ -15,19 +15,21 @@ import { obtenerEstadisticasNotas } from '@/lib/actions/notes.actions'
 export default async function NotasPage({
   searchParams,
 }: {
-  searchParams: { 
-    search?: string; 
-    patient?: string; 
-    type?: string; 
+  searchParams: Promise<{
+    search?: string;
+    patient?: string;
+    type?: string;
     date?: string;
     showForm?: string;
-  };
+  }>;
 }) {
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const params = await searchParams;
 
   // Obtener estadísticas de notas
   let estadisticas;
@@ -42,7 +44,7 @@ export default async function NotasPage({
     };
   }
 
-  const mostrarFormulario = searchParams.showForm === 'true';
+  const mostrarFormulario = params.showForm === 'true';
 
   const tiposSesion = [
     { value: 'individual', label: 'Individual' },
@@ -139,13 +141,13 @@ export default async function NotasPage({
               <label className="text-sm font-medium">Buscar</label>
               <Input
                 placeholder="Buscar en notas..."
-                defaultValue={searchParams.search || ''}
+                defaultValue={params.search || ''}
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Paciente</label>
-              <Select defaultValue={searchParams.patient || ''}>
+              <Select defaultValue={params.patient || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los pacientes" />
                 </SelectTrigger>
@@ -162,7 +164,7 @@ export default async function NotasPage({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo de Sesión</label>
-              <Select defaultValue={searchParams.type || ''}>
+              <Select defaultValue={params.type || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los tipos" />
                 </SelectTrigger>
@@ -181,7 +183,7 @@ export default async function NotasPage({
               <label className="text-sm font-medium">Fecha</label>
               <Input
                 type="date"
-                defaultValue={searchParams.date || ''}
+                defaultValue={params.date || ''}
               />
             </div>
           </div>
@@ -208,11 +210,11 @@ export default async function NotasPage({
         </CardHeader>
         <CardContent>
           <Suspense fallback={<ListaNotasSkeleton />}>
-            <ListaNotas 
-              busqueda={searchParams.search || ''}
-              filtroPaciente={searchParams.patient || ''}
-              filtroTipo={searchParams.type || ''}
-              filtroFecha={searchParams.date || ''}
+            <ListaNotas
+              busqueda={params.search || ''}
+              filtroPaciente={params.patient || ''}
+              filtroTipo={params.type || ''}
+              filtroFecha={params.date || ''}
             />
           </Suspense>
         </CardContent>

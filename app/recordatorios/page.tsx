@@ -15,19 +15,21 @@ import { obtenerEstadisticasRecordatorios } from '@/lib/actions/reminder.actions
 export default async function RecordatoriosPage({
   searchParams,
 }: {
-  searchParams: { 
-    search?: string; 
-    patient?: string; 
-    type?: string; 
+  searchParams: Promise<{
+    search?: string;
+    patient?: string;
+    type?: string;
     status?: string;
     showForm?: string;
-  };
+  }>;
 }) {
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const params = await searchParams;
 
   // Obtener estadísticas de recordatorios
   let estadisticas;
@@ -43,7 +45,7 @@ export default async function RecordatoriosPage({
     };
   }
 
-  const mostrarFormulario = searchParams.showForm === 'true';
+  const mostrarFormulario = params.showForm === 'true';
 
   const pacientesEjemplo = [
     { id: '1', nombre: 'María García' },
@@ -147,13 +149,13 @@ export default async function RecordatoriosPage({
               <label className="text-sm font-medium">Buscar</label>
               <Input
                 placeholder="Buscar por título, mensaje..."
-                defaultValue={searchParams.search || ''}
+                defaultValue={params.search || ''}
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Paciente</label>
-              <Select defaultValue={searchParams.patient || ''}>
+              <Select defaultValue={params.patient || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los pacientes" />
                 </SelectTrigger>
@@ -170,7 +172,7 @@ export default async function RecordatoriosPage({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo</label>
-              <Select defaultValue={searchParams.type || ''}>
+              <Select defaultValue={params.type || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los tipos" />
                 </SelectTrigger>
@@ -187,7 +189,7 @@ export default async function RecordatoriosPage({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Estado</label>
-              <Select defaultValue={searchParams.status || ''}>
+              <Select defaultValue={params.status || ''}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
@@ -225,11 +227,11 @@ export default async function RecordatoriosPage({
         </CardHeader>
         <CardContent>
           <Suspense fallback={<ListaRecordatoriosSkeleton />}>
-            <ListaRecordatorios 
-              busqueda={searchParams.search || ''}
-              filtroPaciente={searchParams.patient || ''}
-              filtroTipo={searchParams.type || ''}
-              filtroEstado={searchParams.status || ''}
+            <ListaRecordatorios
+              busqueda={params.search || ''}
+              filtroPaciente={params.patient || ''}
+              filtroTipo={params.type || ''}
+              filtroEstado={params.status || ''}
             />
           </Suspense>
         </CardContent>

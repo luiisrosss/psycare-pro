@@ -79,7 +79,27 @@ export default async function UpcomingAppointments() {
     citasProximas = metrics.recentAppointments
   } catch (error) {
     console.error('Error al obtener citas próximas:', error)
-    // Usar datos de ejemplo en caso de error
+    // Datos de ejemplo en caso de error
+    const citasEjemplo = [
+      {
+        id: '1',
+        patient_name: 'Juan Pérez',
+        date: new Date().toISOString(),
+        start_time: '10:00',
+        end_time: '11:00',
+        session_type: 'individual',
+        status: 'scheduled'
+      },
+      {
+        id: '2',
+        patient_name: 'María González',
+        date: new Date(Date.now() + 86400000).toISOString(),
+        start_time: '15:30',
+        end_time: '16:30',
+        session_type: 'couple',
+        status: 'confirmed'
+      }
+    ]
     citasProximas = citasEjemplo
   }
   const obtenerColorTipo = (tipo: string) => {
@@ -185,7 +205,7 @@ export default async function UpcomingAppointments() {
 
   return (
     <div className="space-y-3">
-      {citasProximas.map((cita) => (
+      {citasProximas.map((cita: any) => (
         <Card key={cita.id} className="hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex justify-between items-start mb-3">
