@@ -38,14 +38,29 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
 
     const supabase = createSupabaseClient()
     
-    const { data: psychologist } = await supabase
+    // Buscar o crear psicólogo automáticamente
+    let { data: psychologist } = await supabase
       .from('psychologists')
       .select('id')
       .eq('user_id', userId)
       .single()
 
+    // Si no existe, crear automáticamente
     if (!psychologist) {
-      throw new Error('Psicólogo no encontrado')
+      const { data: newPsychologist } = await supabase
+        .from('psychologists')
+        .insert({
+          user_id: userId,
+          license_number: `TEMP-${userId.slice(-8)}`, // Temporal hasta que configure
+        })
+        .select('id')
+        .single()
+
+      if (!newPsychologist) {
+        throw new Error('Error creando perfil de psicólogo')
+      }
+
+      psychologist = newPsychologist
     }
 
     // Total de pacientes
@@ -71,8 +86,8 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .eq('psychologist_id', psychologist.id)
-      .gte('appointment_date', hoy.toISOString())
-      .lte('appointment_date', finDia.toISOString())
+      .gte('date', hoy.toISOString().split('T')[0])
+      .lte('date', finDia.toISOString().split('T')[0])
 
     // Citas de esta semana
     const inicioSemana = new Date()
@@ -87,8 +102,8 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .eq('psychologist_id', psychologist.id)
-      .gte('appointment_date', inicioSemana.toISOString())
-      .lte('appointment_date', finSemana.toISOString())
+      .gte('date', inicioSemana.toISOString().split('T')[0])
+      .lte('date', finSemana.toISOString().split('T')[0])
 
     // Ingresos del mes actual
     const inicioMes = new Date()
@@ -97,22 +112,26 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
 
     const { data: facturasMesActual } = await supabase
       .from('invoices')
-      .select('total_amount')
+      .select('amount')
       .eq('psychologist_id', psychologist.id)
-      .eq('status', 'paid')
+      .eq('payment_status', 'paid')
       .gte('updated_at', inicioMes.toISOString())
 
-    const monthlyRevenue = facturasMesActual?.reduce((sum, factura) => sum + factura.total_amount, 0) || 0
+    const monthlyRevenue = facturasMesActual?.reduce((sum, factura) => sum + factura.amount, 0) || 0
 
-    // Notas pendientes (estimación basada en citas completadas sin notas)
-    const { data: citasCompletadasSinNotas } = await supabase
+    // Notas pendientes (estimación simple - todas las citas completadas menos las que tienen notas)
+    const { count: citasCompletadas } = await supabase
       .from('appointments')
-      .select('id')
+      .select('*', { count: 'exact', head: true })
       .eq('psychologist_id', psychologist.id)
       .eq('status', 'completed')
-      .is('clinical_notes', null)
 
-    const pendingNotes = citasCompletadasSinNotas?.length || 0
+    const { count: notasExistentes } = await supabase
+      .from('clinical_notes')
+      .select('*', { count: 'exact', head: true })
+      .eq('psychologist_id', psychologist.id)
+
+    const pendingNotes = Math.max(0, (citasCompletadas || 0) - (notasExistentes || 0))
 
     // Crecimiento semanal (estimación)
     const semanaAnterior = new Date(inicioSemana)
@@ -134,13 +153,13 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
 
     const { data: facturasMesAnterior } = await supabase
       .from('invoices')
-      .select('total_amount')
+      .select('amount')
       .eq('psychologist_id', psychologist.id)
-      .eq('status', 'paid')
+      .eq('payment_status', 'paid')
       .gte('updated_at', mesAnterior.toISOString())
       .lt('updated_at', inicioMes.toISOString())
 
-    const ingresosMesAnterior = facturasMesAnterior?.reduce((sum, factura) => sum + factura.total_amount, 0) || 0
+    const ingresosMesAnterior = facturasMesAnterior?.reduce((sum, factura) => sum + factura.amount, 0) || 0
     const monthlyGrowth = ingresosMesAnterior ? 
       Math.round(((monthlyRevenue - ingresosMesAnterior) / ingresosMesAnterior) * 100) : 0
 
@@ -149,20 +168,20 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
       .from('appointments')
       .select(`
         id,
-        appointment_date,
+        date,
         session_type,
         status,
         patients!inner(first_name, last_name)
       `)
       .eq('psychologist_id', psychologist.id)
-      .gte('appointment_date', hoy.toISOString())
-      .order('appointment_date', { ascending: true })
+      .gte('date', hoy.toISOString().split('T')[0])
+      .order('date', { ascending: true })
       .limit(5)
 
     const recentAppointments = citasRecientes?.map(cita => ({
       id: cita.id,
       patient_name: `${cita.patients.first_name} ${cita.patients.last_name}`,
-      appointment_date: cita.appointment_date,
+      appointment_date: cita.date,
       session_type: cita.session_type,
       status: cita.status
     })) || []
@@ -172,8 +191,7 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
       .from('clinical_notes')
       .select(`
         id,
-        title,
-        note_type,
+        content,
         created_at,
         patients!inner(first_name, last_name)
       `)
@@ -184,9 +202,9 @@ export async function obtenerMetricasDashboard(): Promise<DashboardMetrics> {
     const recentNotes = notasRecientes?.map(nota => ({
       id: nota.id,
       patient_name: `${nota.patients.first_name} ${nota.patients.last_name}`,
-      title: nota.title,
+      title: nota.content.substring(0, 50) + '...', // Primera línea como título
       created_at: nota.created_at,
-      note_type: nota.note_type
+      note_type: 'session' // Tipo por defecto
     })) || []
 
     return {
