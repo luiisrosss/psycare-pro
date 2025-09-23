@@ -10,17 +10,31 @@
 
 ---
 
-## 🧠 MEMORIA DE PROGRESO
+## 🧠 MEMORIA DE PROGRESO Y METODOLOGÍA DE TESTING
 
-### **Estado Actual (2025-01-22)**
-- ✅ Análisis completo de codebase realizado
-- ✅ CLAUDE.md creado para futuras instancias
-- ✅ Esquema SQL aplicado en Supabase exitosamente (11 tablas creadas)
-- ✅ Proyecto limpio de archivos obsoletos
-- ✅ Servidor de desarrollo corriendo sin errores
-- ✅ Errores TypeScript/imports corregidos
-- 🔄 **EN PROGRESO**: Verificar que todas las páginas cargan sin errores
-- 🔄 **SIGUIENTE**: Implementar CRUD completo de pacientes
+### **Estado Actual (2025-09-23)**
+- ✅ **MVP COMPLETADO**: App convertida a "Sesiones" eliminando "Recordatorios"
+- ✅ **Navegación actualizada**: Dashboard → Pacientes → Citas → Sesiones → Facturación
+- ✅ **Código limpio**: Errores de sintaxis corregidos, mock data removido
+- ✅ **Servidor funcionando**: `localhost:3001` sin errores de compilación
+- 🔄 **EN PROGRESO**: Aplicar esquema SQL completo en Supabase
+- 🔄 **SIGUIENTE**: Testing paso a paso con validación de funcionalidad
+
+### **METODOLOGÍA DE TESTING ESTABLECIDA**
+**Cada paso debe ser validado antes de continuar:**
+
+1. **VERIFICA** → Claude implementa/corrige la funcionalidad
+2. **PRUEBA** → Usuario verifica en browser/production URL
+3. **CONFIRMA** → Usuario dice "✅ Funciona" o "❌ Error: [descripción]"
+4. **DOCUMENTA** → Se actualiza este archivo con resultado
+5. **CONTINÚA** → Solo avanzar si el paso anterior está ✅
+
+### **LOG DE PASOS COMPLETADOS**
+| Paso | Descripción | Estado | Fecha | Verificado |
+|------|-------------|---------|--------|------------|
+| PRE-1 | Convertir a MVP (Sesiones) | ✅ | 2025-09-23 | ✅ |
+| PRE-2 | Fix errores sintaxis | ✅ | 2025-09-23 | ✅ |
+| PRE-3 | Servidor dev funcionando | ✅ | 2025-09-23 | ✅ |
 
 ### **Decisiones Técnicas Tomadas**
 - ✅ Arquitectura confirmada: Next.js (backend) + Supabase (BD) + Clerk (auth) + Stripe (pagos)
